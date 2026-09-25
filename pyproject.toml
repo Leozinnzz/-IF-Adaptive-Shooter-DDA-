@@ -1,0 +1,22 @@
+[project]
+name = "if-adaptive-shooter"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Leozinnzz", email = "leozerathelegend@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.3",
+    "pandas>=3.0.5",
+    "pygame-ce>=2.5.8",
+    "scikit-learn>=1.9.1",
+]
+
+[project.scripts]
+if-adaptive-shooter = "if_adaptive_shooter:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
