@@ -1,1 +1,1 @@
-# -IF-Adaptive-Shooter-DDA-
+# IF-Adaptive-Shooter-DDA
