@@ -10,7 +10,7 @@ class PowerUp(pygame.sprite.Sprite):
         if self.type == 'coffee':
             try: 
                 # Confere se o ficheiro se chama exatamente 'Cafe.png' ou 'cafe.png'
-                self.image = pygame.image.load("assets/img/Cafe.png").convert_alpha()
+                self.image = pygame.image.load("src/assets/img/Cafe.png").convert_alpha()
                 self.image = pygame.transform.scale(self.image, (128, 128))
             except pygame.error:
                 self.image = pygame.Surface((40, 40))
