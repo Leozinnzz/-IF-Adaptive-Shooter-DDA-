@@ -1,9 +1,5 @@
-import pygame
+import pygame 
 from settings import HEIGHT
-
-import pygame
-import settings
-
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()

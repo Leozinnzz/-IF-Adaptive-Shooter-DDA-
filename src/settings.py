@@ -3,5 +3,6 @@ HEIGHT = 1080
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+DARK_BLUE = (17, 17, 50)
 IF_GREEN = (0, 166, 81)
 RED = (255, 60, 60)

@@ -5,7 +5,6 @@ from settings import WIDTH, HEIGHT, RED
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        
         try:
             self.image = pygame.image.load("src/assets/img/sintaxe_corrompida.png").convert_alpha()
             # print(self.image.get_bounding_rect()) eu descobri como achar quantos bits ocupa
@@ -20,7 +19,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y = random.randint(-100, -40)
 
         # encontra a hitbox do jogo
-        pixel_rect = self.image.get_bounding_rect() 
+        pixel_rect = self.image.get_bounding_rect()  
         self.hitbox = pixel_rect.copy() 
         self.hitbox.center = self.rect.center
 
@@ -28,9 +27,9 @@ class Enemy(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.y += self.speed_y
-
+        self.hitbox.center = self.rect.center
         if self.rect.top > HEIGHT:
             self.rect.y = random.randint(-100, -40)
             self.rect.x = random.randint(50, WIDTH - 50)
 
-        self.hitbox.center = self.rect.center
+        
