@@ -6,10 +6,9 @@ import settings
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        
         try: 
-            self.image = pygame.image.load("src/assets/img/Roteador.png").convert_alpha()
-            self.image = pygame.transform.scale(self.image, (128, 128))
+            self.image = pygame.image.load("src/assets/img/DP-02 Delta.png").convert_alpha()
+            self.image = pygame.transform.scale(self.image, (100, 146))
         except pygame.error:
             self.image = pygame.Surface((40, 40))
             self.image.fill((255, 60, 60)) 
@@ -18,10 +17,8 @@ class Player(pygame.sprite.Sprite):
         self.rect.centerx = WIDTH // 2
         self.rect.bottom = HEIGHT - 30
 
-        #Hitbox da nave do jogador
-        pixel_rect = self.image.get_bounding_rect()
-        self.hitbox = pixel_rect.copy()
-        self.hitbox.center = self.rect.center
+        #Hitbox pixel perfect 
+        self.mask = pygame.mask.from_surface(self.image)
         self.speed = 6
 
     def update(self, keys):
@@ -35,8 +32,6 @@ class Player(pygame.sprite.Sprite):
         if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and self.rect.bottom < settings.HEIGHT:
             self.rect.y += self.speed
 
-        #atualização em tempo real da hitbox da nave do jogador
-        self.hitbox.center = self.rect.center
 
     def shoot(self): 
         return Bullet(self.rect.centerx, self.rect.top)

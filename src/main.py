@@ -7,6 +7,8 @@ from powerup import PowerUp
 from explosion import Explosion    
 from menu import Menu 
 from audio import AudioManager
+from map import mapManager 
+from enemy_bullet import EnemyBullet
 
 
 pygame.init()
@@ -20,25 +22,30 @@ font_instructions = pygame.font.SysFont("arial", 20)
 
 audio = AudioManager()
 main_menu = Menu()
+map_manager = mapManager(1)
 
-#Reiniciar todas as variáveis do jogo
+#Reiniciar todas as variáveis do jogo       
 def reset_game(): 
-    global all_sprites, enemy_group, powerup_group, bullet_group, explosion_group, player, score, current_sanity, powerup_spawn_timer
+    global all_sprites, enemy_group, powerup_group, bullet_group, explosion_group, enemy_bullet_group, player, score, current_sanity, powerup_spawn_timer
 
     # Grupos de Sprites
     all_sprites = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
     powerup_group = pygame.sprite.Group()
-    bullet_group = pygame.sprite.Group()  # Grupo exclusivo para os tiros
+    bullet_group = pygame.sprite.Group() 
     explosion_group = pygame.sprite.Group()
+    enemy_bullet_group = pygame.sprite.Group()
 
     player = Player()
     all_sprites.add(player)
 
     quantity = settings.WIDTH // 200    
 
+    allowed_enemies = map_manager.get_allowed_enemies()
+
     for _ in range(quantity):
-        enemy = Enemy()
+        enemy_type = random.choice(allowed_enemies)
+        enemy = Enemy(enemy_type)
         all_sprites.add(enemy)
         enemy_group.add(enemy)
 
@@ -46,13 +53,10 @@ def reset_game():
     max_sanity = 100
     current_sanity = 100
     powerup_spawn_timer = 0
+
 running = True
 game_state = "MENU" #Estados do game ["MENU" "PLAYING" "GAME_OVER"]
 current_music_state = None
-
-#colisao do inimigo
-def collide_hitboxes(sprite1, sprite2):
-    return sprite1.hitbox.colliderect(sprite2.hitbox)
 
 reset_game()
 
@@ -83,10 +87,13 @@ while running:
 
             player.rect.centerx = settings.WIDTH // 2 
             player.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05) 
-            player.hitbox.center = player.rect.center
 
         elif event.type == pygame.KEYDOWN: 
             if game_state == "MENU":
+
+                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
+                    audio.play_menu_move()
+
                 # passa o evento para tratar as setas
                 main_menu.handle_input(event)
                 
@@ -127,27 +134,36 @@ while running:
 
         # Atualizações 
         player.update(keys)
-        enemy_group.update()
+        enemy_group.update(enemy_group, enemy_bullet_group)
         powerup_group.update()
         bullet_group.update()
         explosion_group.update()
+        enemy_bullet_group.update()
+        map_manager.update()
 
         # colisao
-        hits = pygame.sprite.groupcollide(enemy_group, bullet_group, True, True, collided=collide_hitboxes)
-        for hit in hits:
-            score += 100
-            #Cria a explosao do inimigo atingido
-            explosion = Explosion(hit.rect.center)
-            all_sprites.add(explosion)
-            explosion_group.add(explosion)
-            # Cria um novo inimigo para substituir o destruído 
-
-            new_enemy = Enemy()
-            all_sprites.add(new_enemy)
-            enemy_group.add(new_enemy)
+        hits = pygame.sprite.groupcollide(enemy_group, bullet_group, False, True, collided=pygame.sprite.collide_mask)
+        for enemy in hits:
+            enemy.health -= 30
+            enemy.hit()
+            
+            if enemy.health <= 0:
+                score += 100
+                #Cria a explosao do inimigo atingido
+                explosion = Explosion(enemy.rect.center)
+                all_sprites.add(explosion)
+                explosion_group.add(explosion)
+                # Cria um novo inimigo para substituir o destruído 
+                
+                enemy.kill()
+                allowed_enemies = map_manager.get_allowed_enemies()
+                enemy_type = random.choice(allowed_enemies)
+                new_enemy = Enemy(enemy_type)
+                all_sprites.add(new_enemy)
+                enemy_group.add(new_enemy)
 
         # Colisão Power up
-        powerup_collisions = pygame.sprite.spritecollide(player, powerup_group, True, collided=collide_hitboxes)
+        powerup_collisions = pygame.sprite.spritecollide(player, powerup_group, True, collided=pygame.sprite.collide_mask)
         for p in powerup_collisions:
             if p.type == 'coffee':
                 score += 100
@@ -159,10 +175,17 @@ while running:
                 score += 700
 
         #Colisao do jogador com o inimigo
-        player_colision = pygame.sprite.spritecollide(player, enemy_group, True, collided=collide_hitboxes)
+        player_colision = pygame.sprite.spritecollide(player, enemy_group, True, collided=pygame.sprite.collide_mask)
         for p in player_colision: 
-            current_sanity -= 32;
+            current_sanity -= 32
+            if current_sanity <= 0:
+                current_sanity = 0
+                game_state = "GAME_OVER"
 
+        #colisao do projétil 
+        bullet_hits = pygame.sprite.spritecollide(player, enemy_bullet_group, True, collided=pygame.sprite.collide_mask)
+        for b in bullet_hits:
+            current_sanity -= 16
             if current_sanity <= 0:
                 current_sanity = 0
                 game_state = "GAME_OVER"
@@ -171,8 +194,15 @@ while running:
         main_menu.draw(screen)
 
     elif game_state == "PLAYING" or game_state == "GAME_OVER":
-        screen.fill(settings.BLACK)
+        map_manager.draw(screen)
+        current_bg_color = map_manager.config.get("background_color", settings.BLACK)
+        
+
         all_sprites.draw(screen)
+        enemy_bullet_group.draw(screen)
+        #Barra de vida do inimigo 
+        for enemy in enemy_group:
+            enemy.draw_health_bar(screen)
 
         # HUD (Vidas e Score)
         Health_text = font.render(f"Sanidade: {current_sanity}", True, settings.WHITE)

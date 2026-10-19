@@ -6,10 +6,13 @@ class PowerUp(pygame.sprite.Sprite):
     def __init__(self, power_type):
         super().__init__()
         self.type = power_type  
+
+        # Tarefa extra criar um dicionario com o caminho das imagems em pixel art dos power Up
+        
         
         if self.type == 'coffee':
             try: 
-                self.image = pygame.image.load("src/assets/img/Cafe.png").convert_alpha()
+                self.image = pygame.image.load("src/assets/img/cafe.png").convert_alpha()
                 self.image = pygame.transform.scale(self.image, (90, 90))
             except pygame.error:
                 self.image = pygame.Surface((40, 40))
@@ -23,14 +26,10 @@ class PowerUp(pygame.sprite.Sprite):
         self.rect.y = -40
 
         #hitbox do cafe
-        pixel_rect = self.image.get_bounding_rect() 
-        self.hitbox = pixel_rect.copy()
-        self.hitbox.center = self.rect.center
+        self.mask = pygame.mask.from_surface(self.image)
         self.speed_y = 2
 
     def update(self):
         self.rect.y += self.speed_y
         if self.rect.top > HEIGHT:
             self.kill()
-
-        self.hitbox.center = self.rect.center
