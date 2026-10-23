@@ -15,7 +15,6 @@ class Enemy(pygame.sprite.Sprite):
             "AND_corrompido": "src/assets/img/AND_corrompido.png",
             "NOT_corrompido": "src/assets/img/NOT_corrompido.png"
         }
-
         try:
             path = image_paths[enemy_type]
             self.original_image = pygame.image.load(path).convert_alpha()

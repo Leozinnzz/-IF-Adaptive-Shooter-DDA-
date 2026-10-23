@@ -27,7 +27,7 @@ class mapManager:
         self.config = MAP_CONFIGS[current_map_id]
 
         self.bg_images = []
-        self.scroll_speed = 1
+        self.scroll_speed = 0.5
         
         self.load_map_images()
         self.reset_scroll()
@@ -55,15 +55,13 @@ class mapManager:
     def reset_scroll(self):
         h = self.bg_images[0].get_height() if self.bg_images else set.HEIGHT
         
-        # y1 começa visível no ecrã (0) -> Mapa 1
         self.y1 = 0
-        # y2 começa logo acima (-h) -> Mapa 2
         self.y2 = -h
-        # y3 começa mais acima (-h * 2) -> Mapa 3
         self.y3 = -h * 2
-        
-        self.scroll_speed = 1
+
+        self.scroll_speed = 0
         self.boss_triggered = False
+        self.wave_2_stopped = False
 
     def set_map(self, map_id):
         if map_id in MAP_CONFIGS:
@@ -76,27 +74,41 @@ class mapManager:
         self.load_map_images()
         self.reset_scroll()
 
+    def trigger_scroll_transition(self):
+        self.scroll_speed = 0.5
+
+    def check_stop_wave_2(self):
+        if self.scroll_speed > 0 and not self.wave_2_stopped:
+            h = self.bg_images[0].get_height()
+            if self.y2 >= 0 and self.y2 < self.scroll_speed + 2:
+                if not self.boss_triggered and self.y3 < 0:
+                    self.y2 = 0
+                    self.y1 = h
+                    self.scroll_speed = 0 
+                    self.wave_2_stopped = True
+                
+
+
     def get_allowed_enemies(self):
         return self.config["enemies"]
 
     def update(self):
-        """Move o fundo do Mapa 1 para o Mapa 2 e para o Mapa 3, travando no fim."""
         if len(self.bg_images) >= 3 and self.scroll_speed > 0:
             self.y1 += self.scroll_speed
             self.y2 += self.scroll_speed
             self.y3 += self.scroll_speed
 
-            h = self.bg_images[0].get_height()
-
-            # Quando o Mapa 3 (bg_images[2], associado a y3) desce e atinge o topo do ecrã (0),
-            # significa que a sequência terminou e chegamos ao fim do Mapa 3!
+            self.check_stop_wave_2()
+        
             if self.y3 >= 0:
                 self.y3 = 0
-                self.y2 = h       # O Mapa 2 fica logo abaixo
-                self.y1 = h * 2   # O Mapa 1 fica por baixo de tudo
-                self.scroll_speed = 0  # Trava o movimento do fundo!
-                self.boss_triggered = True  # Ativa o sinal para o Boss aparecer no main.py
+                h = self.bg_images[0].get_height()
+                self.y2 = h       
+                self.y1 = h * 2   
+                self.scroll_speed = 0
+                self.boss_triggered = True  #Ativar a flag do boss
 
+    
     def draw(self, surface):
         bg_color = self.config.get("background_color", (0, 0, 0))
         if isinstance(bg_color, tuple):

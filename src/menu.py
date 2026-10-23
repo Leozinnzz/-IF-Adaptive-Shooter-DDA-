@@ -6,7 +6,7 @@ class Menu:
         self.font_title = pygame.font.SysFont("arial", 60, bold=True)
         self.font_options = pygame.font.SysFont("arial", 28)
         
-        self.options = ["Iniciar Jogo", "Sair"]
+        self.options = ["Iniciar Jogo", "Sair", "Opções", "Creditos"]
         self.selected_index = 0
 
     def handle_input(self, event):
