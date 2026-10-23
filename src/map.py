@@ -11,13 +11,16 @@ MAP_CONFIGS = {
             "src/assets/maps/map_1.png",
             "src/assets/maps/map_1(2).png",
             "src/assets/maps/map_1(3).png"
-        ] 
+        ],
+
+        "music_path": "src/assets/sounds/map1.mp3"
     }, 
     2: {
         "name": "Mapa 2: A abstração de hardware", 
         "enemies": [], 
         "background_color": (10, 10, 30), 
-        "image_paths": []
+        "image_paths": [], 
+        #"music_path": "src/assets/sounds/mapa_2.mp3" Mapa 2 musica
     }
 }
 
@@ -31,6 +34,7 @@ class mapManager:
         
         self.load_map_images()
         self.reset_scroll()
+        self.play_map_music() 
 
     def load_map_images(self):
         self.bg_images = []
@@ -52,6 +56,17 @@ class mapManager:
             fallback.fill(color)
             self.bg_images = [fallback, fallback, fallback]
 
+    def play_map_music(self): 
+        music_path = self.config.get("music_path")
+        if music_path:
+            try:
+                py.mixer.music.load(music_path)
+                py.mixer.music.set_volume(0.6)
+                py.mixer.music.play(-1)
+            except (py.error, FileNotFoundError) as e: 
+                print(f"Error ao carregar musica {music_path}: {e}")
+
+
     def reset_scroll(self):
         h = self.bg_images[0].get_height() if self.bg_images else set.HEIGHT
         
@@ -69,6 +84,7 @@ class mapManager:
             self.config = MAP_CONFIGS[map_id]
             self.load_map_images()
             self.reset_scroll()
+            self.play_music()
 
     def resize(self):
         self.load_map_images()
@@ -86,8 +102,6 @@ class mapManager:
                     self.y1 = h
                     self.scroll_speed = 0 
                     self.wave_2_stopped = True
-                
-
 
     def get_allowed_enemies(self):
         return self.config["enemies"]

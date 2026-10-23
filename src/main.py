@@ -11,6 +11,7 @@ from map import mapManager
 from enemy_bullet import EnemyBullet
 
 pygame.init()
+pygame.mixer.init()
 screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("IF Adaptive Shooter ")
 
@@ -22,6 +23,7 @@ font_instructions = pygame.font.SysFont("arial", 20)
 audio = AudioManager()
 main_menu = Menu()
 map_manager = mapManager(1)
+map_music = []
 
 #Reiniciar todas as variáveis do jogo       
 def reset_game(): 
@@ -80,6 +82,7 @@ while running:
     elif game_state == "PLAYING" and current_music_state != "PLAYING":
         audio.stop_music()
         current_music_state = "PLAYING"
+        map_manager.play_map_music()
         
     elif game_state == "GAME_OVER" and current_music_state != "GAME_OVER":
         audio.stop_music()
@@ -102,9 +105,6 @@ while running:
 
             for enemy in enemy_group: 
                 enemy.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
-
-
-            
 
         elif event.type == pygame.KEYDOWN: 
             if game_state == "MENU":
@@ -209,6 +209,9 @@ while running:
         # Colisão Power up
         powerup_collisions = pygame.sprite.spritecollide(player, powerup_group, True, collided=pygame.sprite.collide_mask)
         for p in powerup_collisions:
+
+            p.play_sound()
+
             if p.type == 'coffee':
                 score += 100
                 if current_sanity < 100:
