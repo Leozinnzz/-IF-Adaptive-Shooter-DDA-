@@ -9,6 +9,7 @@ from menu import Menu
 from audio import AudioManager
 from map import mapManager 
 from enemy_bullet import EnemyBullet
+from settings_menu import SettingsMenu
 
 pygame.init()
 pygame.mixer.init()
@@ -22,8 +23,11 @@ font_instructions = pygame.font.SysFont("arial", 20)
 
 audio = AudioManager()
 main_menu = Menu()
+settings_menu = SettingsMenu()
 map_manager = mapManager(1)
 map_music = []
+
+
 
 #Reiniciar todas as variáveis do jogo       
 def reset_game(): 
@@ -52,7 +56,7 @@ def reset_game():
         if current_wave == 1:
             enemy_type = random.choice(["bug", "drone_sintaxe"])
         elif current_wave == 2:
-            enemy_type = random.choice(["AND_corrompido", "NOT_corrompido"])
+            enemy_type = random.choice(["AND_corrompido", "NOT_corrompido", "OR_corrompido"])
         else: 
             random.choice(allowed_enemies)
             
@@ -87,6 +91,8 @@ while running:
     elif game_state == "GAME_OVER" and current_music_state != "GAME_OVER":
         audio.stop_music()
         current_music_state = "GAME_OVER"
+        map_manager.reset_scroll()
+        
 
     #Eventos no teclado
     for event in pygame.event.get():
@@ -117,14 +123,36 @@ while running:
                 
                 # confirma a opção com enter
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    escolha = main_menu.get_selected_action()
-                    if escolha == "Iniciar Jogo":
-                        reset_game()
-                        game_state = "PLAYING"
-                    elif escolha == "Sair":
-                        running = False
+                        escolha = main_menu.get_selected_action()
+                        if escolha == "Iniciar Jogo":
+                            reset_game()
+                            game_state = "PLAYING"
+                        elif escolha == "Opções":
+                            game_state = "SETTINGS"  
+                        elif escolha == "Sair":
+                            running = False
                 elif event.key == pygame.K_ESCAPE:
-                    running = False
+                        running = False
+
+            elif game_state == "SETTINGS":
+                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
+                    audio.play_menu_move()
+
+                settings_menu.handle_input(event)
+
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_LEFT, pygame.K_RIGHT):
+                    escolha = settings_menu.get_selected_action()
+                    if "Voltar" in escolha:
+                        game_state = "MENU"
+                    elif "Resolução" in escolha and event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_RIGHT):
+                        w, h = settings_menu.resolutions[settings_menu.res_index]
+                        settings.WIDTH = w
+                        settings.HEIGHT = h
+                        screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
+                        map_manager.resize()
+
+                elif event.key == pygame.K_ESCAPE:
+                    game_state = "MENU"
 
             elif game_state == "PLAYING":
                 if event.key == pygame.K_SPACE:
@@ -134,7 +162,7 @@ while running:
                     
             elif game_state == "GAME_OVER":
                 if event.key == pygame.K_ESCAPE:
-                    running = False
+                    game_state = "MENU"  
                 else:
                     game_state = "MENU"
 
@@ -198,9 +226,9 @@ while running:
                         if current_wave == 1:
                             enemy_type = random.choice(["bug", "drone_sintaxe"])
                         elif current_wave == 2:
-                            enemy_type = random.choice(["AND_corrompido", "NOT_corrompido"])
+                            enemy_type = random.choice(["AND_corrompido", "NOT_corrompido", "OR_corrompido"])
                         else: 
-                            enemy_type = random.choice(map_manager.get_allowed_enemies()) 
+                            enemy_type = random.choice(map_manager.get_allowed_enemies())
                             
                         new_enemy = Enemy(enemy_type)
                         all_sprites.add(new_enemy)
@@ -239,6 +267,9 @@ while running:
 
     if game_state == "MENU": 
         main_menu.draw(screen)
+
+    elif game_state == "SETTINGS":
+        settings_menu.draw(screen)
 
     elif game_state == "PLAYING" or game_state == "GAME_OVER":
         map_manager.draw(screen)
@@ -284,8 +315,6 @@ while running:
         restart_text = font_instructions.render("Pressione Qualquer Tecla para continuar...", True, settings.WHITE)
         restart_rect = restart_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + 30))
         screen.blit(restart_text, restart_rect)
-
-        map_manager.reset_scroll()
 
     pygame.display.flip()
     clock.tick(60)

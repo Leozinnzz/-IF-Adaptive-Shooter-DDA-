@@ -13,8 +13,19 @@ class Enemy(pygame.sprite.Sprite):
             "bug": "src/assets/img/bug.png",
             "drone_sintaxe": "src/assets/img/drone_sintaxe.png", 
             "AND_corrompido": "src/assets/img/AND_corrompido.png",
-            "NOT_corrompido": "src/assets/img/NOT_corrompido.png"
+            "NOT_corrompido": "src/assets/img/NOT_corrompido.png",
+            "OR_corrompido": "src/assets/img/OR_corrompido.png"
         }
+        #tipo de projetil do inimigo
+        bullet_map = {
+            "drone_sintaxe": "green_orb",
+            "AND_corrompido": "blue_orb",
+            "NOT_corrompido": "blue_orb",
+            "OR_corrompido": "red_orb"
+        }
+        
+        self.bullet_type = bullet_map.get(self.enemy_type, "red_orb")
+
         try:
             path = image_paths[enemy_type]
             self.original_image = pygame.image.load(path).convert_alpha()
@@ -101,12 +112,12 @@ class Enemy(pygame.sprite.Sprite):
                 self.is_flashing = False
                 self.image = self.original_image
 
-        #disparo do inimigo 
+# Disparo do inimigo 
         if self.can_shoot: 
             self.shoot_timer += 1
             if self.shoot_timer >= self.shoot_interval: 
                 self.shoot_timer = 0
-                bullet = EnemyBullet(self.rect.centerx, self.rect.bottom)
+                bullet = EnemyBullet(self.rect.centerx, self.rect.bottom, bullet_type=self.bullet_type)
                 enemy_bullet_group.add(bullet)
 
 

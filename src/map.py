@@ -4,7 +4,7 @@ import pygame as py
 MAP_CONFIGS = {
     1: {
         "name": "Mapa 1: O impacto inicial",
-        "enemies": ["bug", "drone_sintaxe", "AND_corrompido", "NOT_corrompido"],
+        "enemies": ["bug", "drone_sintaxe", "AND_corrompido", "NOT_corrompido", "OR_corrompido"],
         "background_color": (30, 30, 40), 
         
         "image_paths": [
@@ -61,10 +61,10 @@ class mapManager:
         if music_path:
             try:
                 py.mixer.music.load(music_path)
-                py.mixer.music.set_volume(0.6)
+                py.mixer.music.set_volume(0.8)
                 py.mixer.music.play(-1)
             except (py.error, FileNotFoundError) as e: 
-                print(f"Error ao carregar musica {music_path}: {e}")
+                print(f"Error ao carreg8ar musica {music_path}: {e}")
 
 
     def reset_scroll(self):

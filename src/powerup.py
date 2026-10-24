@@ -32,6 +32,7 @@ class PowerUp(pygame.sprite.Sprite):
 
         #hitbox do cafe
         self.mask = pygame.mask.from_surface(self.image)
+
         self.speed_y = 2
 
     def load_image(self):
@@ -47,7 +48,6 @@ class PowerUp(pygame.sprite.Sprite):
             self.image.fill(fallback_color)
 
     def load_sound(self):
-        """Carrega o som associado a este power-up"""
         sound_path = self.config.get("sound_path")
         self.sound = None
         if sound_path:
