@@ -107,7 +107,7 @@ class mapManager:
         return self.config["enemies"]
 
     def update(self):
-        if len(self.bg_images) >= 3 and self.scroll_speed > 0:
+        if len(self.bg_images) > 1 and len(self.bg_images) >= 3 and self.scroll_speed > 0:
             self.y1 += self.scroll_speed
             self.y2 += self.scroll_speed
             self.y3 += self.scroll_speed
@@ -122,7 +122,6 @@ class mapManager:
                 self.scroll_speed = 0
                 self.boss_triggered = True  #Ativar a flag do boss
 
-    
     def draw(self, surface):
         bg_color = self.config.get("background_color", (0, 0, 0))
         if isinstance(bg_color, tuple):

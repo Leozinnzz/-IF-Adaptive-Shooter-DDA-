@@ -10,6 +10,7 @@ from audio import AudioManager
 from map import mapManager 
 from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
+from boss import Boss
 
 pygame.init()
 pygame.mixer.init()
@@ -26,7 +27,6 @@ main_menu = Menu()
 settings_menu = SettingsMenu()
 map_manager = mapManager(1)
 map_music = []
-
 
 
 #Reiniciar todas as variáveis do jogo       
@@ -46,7 +46,7 @@ def reset_game():
 
     quantity = settings.WIDTH // 200    
 
-    #inicializaçção das faases/inimigos
+    #inicializaçção das fases/inimigos
     allowed_enemies = map_manager.get_allowed_enemies()
     current_wave = 1; 
     enemies_defeated_wave = 0 
@@ -104,12 +104,13 @@ while running:
             settings.WIDTH = event.w
             settings.HEIGHT = event.h
 
-            player.rect.centerx = settings.WIDTH // 2 
-            player.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05) 
+            player.resize()
+            player.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
 
             map_manager.resize()
 
             for enemy in enemy_group: 
+                enemy.resize()
                 enemy.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
 
         elif event.type == pygame.KEYDOWN: 
@@ -118,7 +119,7 @@ while running:
                 if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
                     audio.play_menu_move()
 
-                # passa o evento para tratar as setas
+                # passa o evento para tratar as setas digitadas pelo jogador
                 main_menu.handle_input(event)
                 
                 # confirma a opção com enter
@@ -149,7 +150,19 @@ while running:
                         settings.WIDTH = w
                         settings.HEIGHT = h
                         screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
+
                         map_manager.resize()
+
+                        #posição dinamica do jogador
+                        player.resize()
+                        player.rect.centerx = settings.WIDTH // 2
+                        player.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
+
+                        for enemy in enemy_group: 
+                            enemy.resize()
+                            if isinstance(enemy, Boss):
+                                enemy.resize()
+                            enemy.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
 
                 elif event.key == pygame.K_ESCAPE:
                     game_state = "MENU"
@@ -161,10 +174,8 @@ while running:
                     bullet_group.add(bullet)
                     
             elif game_state == "GAME_OVER":
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pygame.K_RETURN:
                     game_state = "MENU"  
-                else:
-                    game_state = "MENU"
 
     keys = pygame.key.get_pressed()
 
@@ -208,7 +219,7 @@ while running:
                 if enemies_defeated_wave >= enemies_required_wave:
                     current_wave += 1
                     enemies_defeated_wave = 0
-                    enemies_required_wave += 5
+                    enemies_required_wave += 1 
 
                     # Movimentar o mapa de acordo com a nova wave
                     if current_wave == 2:
@@ -219,6 +230,10 @@ while running:
 
                     elif current_wave > 3:
                         map_manager.boss_triggered = True
+                        if not any(isinstance(s, Boss) for s in enemy_group):
+                            boss = Boss("boss_sintaxe") 
+                            all_sprites.add(boss)
+                            enemy_group.add(boss)
 
                 else:
                     # Se a wave ainda não acabou, cria um novo inimigo normal
@@ -280,7 +295,10 @@ while running:
 
         #Barra de vida do inimigo 
         for enemy in enemy_group:
-            enemy.draw_health_bar(screen)
+            if isinstance(enemy, Boss):
+                enemy.draw_health_bar(screen)  # Desenha a barra grande do Boss no topo
+            else:
+                enemy.draw_health_bar(screen)
 
         # HUD (Vidas e Score)
         Health_text = font.render(f"Sanidade: {current_sanity}", True, settings.WHITE)

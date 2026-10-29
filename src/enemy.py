@@ -1,7 +1,7 @@
 import pygame
 import random
 from enemy_bullet import EnemyBullet
-from settings import WIDTH, HEIGHT, RED
+import settings
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, enemy_type):
@@ -9,7 +9,7 @@ class Enemy(pygame.sprite.Sprite):
         self.enemy_type = enemy_type
 
         # Dicionario dos caminhos das pixel arts
-        image_paths = {
+        self.image_paths = {
             "bug": "src/assets/img/bug.png",
             "drone_sintaxe": "src/assets/img/drone_sintaxe.png", 
             "AND_corrompido": "src/assets/img/AND_corrompido.png",
@@ -26,20 +26,16 @@ class Enemy(pygame.sprite.Sprite):
         
         self.bullet_type = bullet_map.get(self.enemy_type, "red_orb")
 
-        try:
-            path = image_paths[enemy_type]
-            self.original_image = pygame.image.load(path).convert_alpha()
-            self.original_image = pygame.transform.scale(self.original_image, (100, 100))
-            self.image = self.original_image
-        except pygame.error:
-            self.original_image = pygame.Surface((30, 30))
-            self.original_image.fill((255, 60, 60)) 
-            self.image = self.original_image
+        self.load_image_dynamic()
 
-        #definir a posição inicial do rect
         self.rect = self.image.get_rect()
-        self.rect.x = random.randint(50, WIDTH - 50)
-        self.rect.y = random.randint(-100, -40)
+
+
+        self.rect.x = random.randint(50, settings.WIDTH - 50)
+        self.rect.y = random.randint(-150, -40)
+
+        self.mask = pygame.mask.from_surface(self.image)
+        self.speed_y = 2
 
         #efeito de impacto
         self.is_flashing = False 
@@ -61,19 +57,38 @@ class Enemy(pygame.sprite.Sprite):
             self.can_shoot = True
             self.shoot_interval = 120
             self.shoot_timer = random.randint(0, 60)
+        elif enemy_type == "OR_corrompido":
+            self.speed_y = random.randint(2,2)
+            self.max_health = 400
+            self.can_shoot = True
+            self.shoot_interval = 120
+            self.shoot_timer = random.randint(0, 30)
         else:
             self.max_health = 200
             self.speed_y = random.randint(1,3)
             self.can_shoot = True
             self.shoot_interval = 90 
             self.shoot_timer = random.randint(0, 30)
-
+        
         self.health = self.max_health
 
-        # encontra a hitbox do jogo
-        pixel_rect = self.image.get_bounding_rect()   # descobri como achar quantos bits ocupa
-        self.hitbox = pixel_rect.copy() 
-        self.hitbox.center = self.rect.center
+    def load_image_dynamic(self):
+        enemy_size = max(50, int(settings.WIDTH * 0.05))
+        path = self.image_paths.get(self.enemy_type, "")
+
+        try:
+            self.original_image = pygame.image.load(path).convert_alpha()
+            self.original_image = pygame.transform.scale(self.original_image, (enemy_size, enemy_size))
+            self.image = self.original_image
+        except (pygame.error, FileNotFoundError):
+            self.original_image = pygame.Surface((enemy_size, enemy_size))
+            self.original_image.fill(settings.RED)
+            self.image = self.original_image
+
+    def resize(self):
+        self.load_image_dynamic()
+        self.mask = pygame.mask.from_surface(self.image)
+
 
 
     def draw_health_bar(self, surface):
@@ -112,7 +127,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.is_flashing = False
                 self.image = self.original_image
 
-# Disparo do inimigo 
+        # Disparo do inimigo 
         if self.can_shoot: 
             self.shoot_timer += 1
             if self.shoot_timer >= self.shoot_interval: 
@@ -124,13 +139,12 @@ class Enemy(pygame.sprite.Sprite):
         #evitar colisao entre inimigos 
         for other in enemy_group: 
             if other != self:
-                if self.hitbox.colliderect(other.hitbox):
+                if self.rect.colliderect(other.rect):
                     if self.rect.centerx < other.rect.centerx:
                         self.rect.x -= 3
                     else:
                         self.rect.x += 3
 
-        self.hitbox.center = self.rect.center
-        if self.rect.top > HEIGHT:
+        if self.rect.top > settings.HEIGHT:
             self.rect.y = random.randint(-100, -40)
-            self.rect.x = random.randint(50, WIDTH - 50)
+            self.rect.x = random.randint(50, settings.WIDTH - 50)

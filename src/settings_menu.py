@@ -3,12 +3,12 @@ import settings
 
 class SettingsMenu:
     def __init__(self):
-        self.options = ["Áudio: Ativado", "Resolução: 1280x720", "Voltar"]
+        self.options = ["Áudio: Ativado", "Resolução: 1920x1080", "Voltar"]
         self.selected_index = 0
         
 
         self.audio_on = True
-        self.resolutions = [(1280, 720), (1366, 768), (1920, 1080)]
+        self.resolutions = [(400, 600), (800, 600), (1280, 720), (1366, 768), (1920, 1080)]
         self.res_index = 0
 
         self.font = pygame.font.SysFont("arial", 28)
@@ -22,7 +22,7 @@ class SettingsMenu:
                 self.selected_index = (self.selected_index + 1) % len(self.options)
             
             elif event.key in (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_RETURN, pygame.K_SPACE):
-                if self.selected_index == 0:  # Áudio
+                if self.selected_index == 0:  
                     self.audio_on = not self.audio_on
                     state = "Ativado" if self.audio_on else "Desativado"
                     self.options[0] = f"Áudio: {state}"
@@ -49,7 +49,7 @@ class SettingsMenu:
 
         # Opções
         for i, option in enumerate(self.options):
-            color = (0, 255, 255) if i == self.selected_index else (200, 200, 200)
+            color = (255, 255, 0) if i == self.selected_index else (200, 200, 200)
             text_surf = self.font.render(option, True, color)
             text_rect = text_surf.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + i * 50))
             surface.blit(text_surf, text_rect)
