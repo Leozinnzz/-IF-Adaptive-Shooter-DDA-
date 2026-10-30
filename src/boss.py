@@ -1,5 +1,6 @@
 import pygame as py 
 import settings 
+from enemy_bullet import EnemyBullet
 
 BOSS_CONFIGS = {
     "ITERATOR-01": {
@@ -28,7 +29,6 @@ class Boss(py.sprite.Sprite):
         self.rect.centerx = settings.WIDTH // 2
         self.rect.y = -self.rect.height
 
-        #Pixel perfeito
         self.mask = py.mask.from_surface(self.image)
 
         self.max_health = self.config["max_health"]
@@ -40,6 +40,10 @@ class Boss(py.sprite.Sprite):
         self.is_flashing = False 
         self.flash_timer = 0 
         self.flash_duration = 10 
+
+        # Temporizador de tiro do Boss
+        self.shoot_timer = 0
+        self.shoot_interval = 45
 
     def load_image_dynamic(self):
         boss_width = max(100, int(settings.WIDTH * self.config["size_scale"][0]))
@@ -73,7 +77,7 @@ class Boss(py.sprite.Sprite):
             self.flash_image.fill((100, 100, 100), special_flags=py.BLEND_RGBA_MULT)
             self.image = self.flash_image
 
-    def update(self, enemy_group, enemy_bullet_group=None):
+    def update(self, enemy_group, enemy_bullet_group):
         if self.is_flashing: 
             self.flash_timer += 1
             if self.flash_timer > self.flash_duration:
@@ -89,6 +93,16 @@ class Boss(py.sprite.Sprite):
             self.rect.x += self.speed_x
             if self.rect.left <= 20 or self.rect.right >= settings.WIDTH - 20:
                 self.speed_x *= -1
+
+            # Lógica de disparo do Boss
+            self.shoot_timer += 1
+            if self.shoot_timer >= self.shoot_interval:
+                self.shoot_timer = 0
+                self.shoot_pattern(enemy_bullet_group)
+
+    def shoot_pattern(self, enemy_bullet_group):
+        bullet = EnemyBullet(self.rect.centerx, self.rect.bottom)
+        enemy_bullet_group.add(bullet)
 
     def draw_health_bar(self, surface):
         bar_width = int(settings.WIDTH * 0.6)

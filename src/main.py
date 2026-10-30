@@ -69,7 +69,6 @@ def reset_game():
     current_sanity = 100
     powerup_spawn_timer = 0
 
-
 running = True
 game_state = "MENU" #Estados do game ["MENU" "PLAYING" "GAME_OVER"]
 current_music_state = None
@@ -217,27 +216,26 @@ while running:
 
                 # Validação para verificar se passou de fase (wave)
                 if enemies_defeated_wave >= enemies_required_wave:
-                    current_wave += 1
+                    current_wave += 1  
                     enemies_defeated_wave = 0
-                    enemies_required_wave += 1 
+                    enemies_required_wave += 3
 
-                    # Movimentar o mapa de acordo com a nova wave
                     if current_wave == 2:
-                        map_manager.trigger_scroll_transition()
+                        map_manager.trigger_scroll_transition(current_wave) 
 
                     elif current_wave == 3:
-                        map_manager.trigger_scroll_transition()
+                        map_manager.trigger_scroll_transition(current_wave)
 
                     elif current_wave > 3:
                         map_manager.boss_triggered = True
                         if not any(isinstance(s, Boss) for s in enemy_group):
-                            boss = Boss("boss_sintaxe") 
+                            boss = Boss("ITERATOR-01") 
                             all_sprites.add(boss)
                             enemy_group.add(boss)
 
                 else:
                     # Se a wave ainda não acabou, cria um novo inimigo normal
-                    if not getattr(map_manager, "boss_triggered", False):
+                    #if not getattr(map_manager, "boss_triggered", False):
                         if current_wave == 1:
                             enemy_type = random.choice(["bug", "drone_sintaxe"])
                         elif current_wave == 2:
@@ -257,10 +255,7 @@ while running:
 
             if p.type == 'coffee':
                 score += 100
-                if current_sanity < 100:
-                    current_sanity += 10
-                    if current_sanity > 100:
-                        current_sanity = 100
+                current_sanity = min(100, current_sanity + 10)
             elif p.type == 'auxilio':
                 score += 700
 

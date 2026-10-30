@@ -1,26 +1,19 @@
-import settings as set
 import pygame as py 
+import settings as set 
 
 MAP_CONFIGS = {
     1: {
         "name": "Mapa 1: O impacto inicial",
         "enemies": ["bug", "drone_sintaxe", "AND_corrompido", "NOT_corrompido", "OR_corrompido"],
         "background_color": (30, 30, 40), 
-        
-        "image_paths": [
-            "src/assets/maps/map_1.png",
-            "src/assets/maps/map_1(2).png",
-            "src/assets/maps/map_1(3).png"
-        ],
-
+        "image_path": "src/assets/maps/mapa1.png",
         "music_path": "src/assets/sounds/map1.mp3"
     }, 
     2: {
         "name": "Mapa 2: A abstração de hardware", 
         "enemies": [], 
         "background_color": (10, 10, 30), 
-        "image_paths": [], 
-        #"music_path": "src/assets/sounds/mapa_2.mp3" Mapa 2 musica
+        #"image_path": "src/assets/maps/map_2_completo.png", 
     }
 }
 
@@ -29,32 +22,33 @@ class mapManager:
         self.current_map_id = current_map_id
         self.config = MAP_CONFIGS[current_map_id]
 
-        self.bg_images = []
-        self.scroll_speed = 0.5
+        self.scroll_speed = 0
+        self.target_scroll_y = 0  # Ponto onde o mapa deve parar (checkpoint da wave)
+        self.boss_triggered = False
         
-        self.load_map_images()
+        self.load_map_image()
         self.reset_scroll()
         self.play_map_music() 
 
-    def load_map_images(self):
-        self.bg_images = []
-        paths = self.config.get("image_paths", [])
+    def load_map_image(self):
+        path = self.config.get("image_path")
+        try:
+            raw_img = py.image.load(path).convert()
+            orig_w, orig_h = raw_img.get_size()
+            
+            scale_factor = set.WIDTH / orig_w
+            new_width = set.WIDTH
+            new_height = int(orig_h * scale_factor)
+            
+            if new_height < set.HEIGHT * 3:
+                scale_factor = (set.HEIGHT * 3) / orig_h
+                new_width = int(orig_w * scale_factor)
+                new_height = int(orig_h * scale_factor)
 
-        for path in paths:
-            try:
-                img = py.image.load(path).convert()
-                img = py.transform.scale(img, (set.WIDTH, set.HEIGHT))
-                self.bg_images.append(img)
-            except (py.error, FileNotFoundError) as e:
-                print(f"Erro ao carregar {path}: {e}") 
-
-        if not self.bg_images:
-            fallback = py.Surface((set.WIDTH, set.HEIGHT))
-            color = self.config.get("background_color", (30, 30, 40))
-            if not isinstance(color, tuple):
-                color = (30, 30, 40)
-            fallback.fill(color)
-            self.bg_images = [fallback, fallback, fallback]
+            self.bg_image = py.transform.scale(raw_img, (new_width, new_height))
+        except (py.error, FileNotFoundError):
+            self.bg_image = py.Surface((set.WIDTH, set.HEIGHT * 3))
+            self.bg_image.fill(self.config.get("background_color", (30, 30, 40)))
 
     def play_map_music(self): 
         music_path = self.config.get("music_path")
@@ -64,73 +58,47 @@ class mapManager:
                 py.mixer.music.set_volume(0.8)
                 py.mixer.music.play(-1)
             except (py.error, FileNotFoundError) as e: 
-                print(f"Error ao carreg8ar musica {music_path}: {e}")
-
+                print(f"Erro ao carregar música {music_path}: {e}")
 
     def reset_scroll(self):
-        h = self.bg_images[0].get_height() if self.bg_images else set.HEIGHT
-        
-        self.y1 = 0
-        self.y2 = -h
-        self.y3 = -h * 2
-
+        # Começa no fundo do mapa
+        self.scroll_y = -self.bg_image.get_height() + set.HEIGHT
+        self.target_scroll_y = self.scroll_y
         self.scroll_speed = 0
         self.boss_triggered = False
-        self.wave_2_stopped = False
-
-    def set_map(self, map_id):
-        if map_id in MAP_CONFIGS:
-            self.current_map_id = map_id
-            self.config = MAP_CONFIGS[map_id]
-            self.load_map_images()
-            self.reset_scroll()
-            self.play_music()
 
     def resize(self):
-        self.load_map_images()
+        self.load_map_image()
         self.reset_scroll()
 
-    def trigger_scroll_transition(self):
-        self.scroll_speed = 0.5
-
-    def check_stop_wave_2(self):
-        if self.scroll_speed > 0 and not self.wave_2_stopped:
-            h = self.bg_images[0].get_height()
-            if self.y2 >= 0 and self.y2 < self.scroll_speed + 2:
-                if not self.boss_triggered and self.y3 < 0:
-                    self.y2 = 0
-                    self.y1 = h
-                    self.scroll_speed = 0 
-                    self.wave_2_stopped = True
+    def trigger_scroll_transition(self, current_wave):
+        total_height = self.bg_image.get_height() - set.HEIGHT
+        
+        if current_wave == 2:
+            self.target_scroll_y = -total_height * 0.66
+        elif current_wave == 3:
+            self.target_scroll_y = 0
+            
+        self.scroll_speed = 1.0  # Velocidade de transição suave
 
     def get_allowed_enemies(self):
         return self.config["enemies"]
 
     def update(self):
-        if len(self.bg_images) > 1 and len(self.bg_images) >= 3 and self.scroll_speed > 0:
-            self.y1 += self.scroll_speed
-            self.y2 += self.scroll_speed
-            self.y3 += self.scroll_speed
-
-            self.check_stop_wave_2()
-        
-            if self.y3 >= 0:
-                self.y3 = 0
-                h = self.bg_images[0].get_height()
-                self.y2 = h       
-                self.y1 = h * 2   
-                self.scroll_speed = 0
-                self.boss_triggered = True  #Ativar a flag do boss
+        if self.scroll_speed > 0:
+            if self.scroll_y < self.target_scroll_y:
+                self.scroll_y += self.scroll_speed
+                # Garante que não passa do alvo
+                if self.scroll_y >= self.target_scroll_y:
+                    self.scroll_y = self.target_scroll_y
+                    self.scroll_speed = 0
+                
+                    if self.scroll_y == 0:
+                        self.boss_triggered = True
 
     def draw(self, surface):
         bg_color = self.config.get("background_color", (0, 0, 0))
-        if isinstance(bg_color, tuple):
-            surface.fill(bg_color)
-        else:
-            surface.fill((0, 0, 0))
+        surface.fill(bg_color if isinstance(bg_color, tuple) else (0, 0, 0))
 
-        if len(self.bg_images) >= 3:
-            # Desenha os 3 mapas em sequência exata (Mapa 1 -> Mapa 2 -> Mapa 3)
-            surface.blit(self.bg_images[0], (0, int(self.y1)))
-            surface.blit(self.bg_images[1], (0, int(self.y2)))
-            surface.blit(self.bg_images[2], (0, int(self.y3)))
+        # Desenha o mapa na posição atual de scroll
+        surface.blit(self.bg_image, (0, int(self.scroll_y)))
