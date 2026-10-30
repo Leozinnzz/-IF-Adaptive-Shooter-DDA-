@@ -5,23 +5,25 @@ class AudioManager:
         pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=512)
         pygame.mixer.init()
 
-        #Efeitos sonoros
-        try:
-            # Efeitos sonoros
-            self.menu_move_sound = pygame.mixer.Sound("src/assets/sounds/option_sound.mp3")
-            #self.laser_sound = pygame.mixer.Sound("assets/laser.wav")
-            #self.explosion_sound = pygame.mixer.Sound("assets/explosion.wav")
-            
-            # Volumes
-            self.menu_move_sound.set_volume(0.3)
-            #self.laser_sound.set_volume(0.3)
-            #self.explosion_sound.set_volume(0.5)
-        except:
-            print("Aviso: Alguns ficheiros de som não foram encontrados.")
+        pygame.mixer.set_num_channels(32)
+        
+        self.sounds = {}
 
+    def play_sound(self, path, volume=0.5):
+        """Função genérica: Carrega o som (se não existir) e toca-o."""
+        if path not in self.sounds:
+            try:
+                self.sounds[path] = pygame.mixer.Sound(path)
+            except Exception as e:
+                print(f"Aviso: Não foi possível carregar o som {path} - {e}")
+                return
+
+        sound_effect = self.sounds[path]
+        sound_effect.set_volume(volume)
+        sound_effect.play()
 
     def play_menu_move(self):
-        self.menu_move_sound.play()
+        self.play_sound("src/assets/sounds/option_sound.mp3", 0.3)
 
     def play_music(self, filepath, loop=-1):
         try:

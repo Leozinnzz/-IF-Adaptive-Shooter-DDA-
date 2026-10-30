@@ -85,10 +85,19 @@ class Enemy(pygame.sprite.Sprite):
             self.original_image.fill(settings.RED)
             self.image = self.original_image
 
+    def reset_state(self):
+        self.rect.y = random.randint(-100, -40)
+        self.rect.x = random.randint(0, settings.WIDTH - self.rect.width)
+        
+        self.health = self.max_health
+        
+        if hasattr(self, 'is_flashing'):
+            self.is_flashing = False
+            self.image = self.original_image
+
     def resize(self):
         self.load_image_dynamic()
         self.mask = pygame.mask.from_surface(self.image)
-
 
 
     def draw_health_bar(self, surface):
@@ -120,6 +129,8 @@ class Enemy(pygame.sprite.Sprite):
     def update(self, enemy_group, enemy_bullet_group):
         self.rect.y += self.speed_y
 
+        
+
         #Flash de imapcto
         if self.is_flashing: 
             self.flash_timer += 1
@@ -146,5 +157,4 @@ class Enemy(pygame.sprite.Sprite):
                         self.rect.x += 3
 
         if self.rect.top > settings.HEIGHT:
-            self.rect.y = random.randint(-100, -40)
-            self.rect.x = random.randint(50, settings.WIDTH - 50)
+            self.reset_state()

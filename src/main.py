@@ -11,6 +11,7 @@ from map import mapManager
 from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
 from boss import Boss
+from hud import HUD
 
 pygame.init()
 pygame.mixer.init()
@@ -26,6 +27,7 @@ audio = AudioManager()
 main_menu = Menu()
 settings_menu = SettingsMenu()
 map_manager = mapManager(1)
+hud = HUD()
 map_music = []
 
 
@@ -82,11 +84,11 @@ while running:
         audio.play_music("src/assets/sounds/menu_music.mp3")
         current_music_state = "MENU"
         
-    elif game_state == "PLAYING" and current_music_state != "PLAYING":
+    elif game_state == "PLAYING" and current_music_state not in ("PLAYING", "BOSS"):
         audio.stop_music()
         current_music_state = "PLAYING"
         map_manager.play_map_music()
-        
+
     elif game_state == "GAME_OVER" and current_music_state != "GAME_OVER":
         audio.stop_music()
         current_music_state = "GAME_OVER"
@@ -171,6 +173,7 @@ while running:
                     bullet = player.shoot()
                     all_sprites.add(bullet)
                     bullet_group.add(bullet)
+                    audio.play_sound("src/assets/sounds/laser.mp3", 0.3)
                     
             elif game_state == "GAME_OVER":
                 if event.key == pygame.K_RETURN:
@@ -182,7 +185,7 @@ while running:
     if game_state == "PLAYING":
         powerup_spawn_timer += 1
         if powerup_spawn_timer > 300:
-            chosen_type = random.choice(['coffee', 'auxilio'])
+            chosen_type = random.choice(['coffee'])
             powerup = PowerUp(chosen_type)
             all_sprites.add(powerup)
             powerup_group.add(powerup)
@@ -232,6 +235,8 @@ while running:
                             boss = Boss("ITERATOR-01") 
                             all_sprites.add(boss)
                             enemy_group.add(boss)
+                            audio.play_music("src/assets/sounds/boss_music.mp3")
+                            current_music_state = "BOSS"
 
                 else:
                     # Se a wave ainda não acabou, cria um novo inimigo normal
@@ -260,20 +265,33 @@ while running:
                 score += 700
 
         #Colisao do jogador com o inimigo
-        player_colision = pygame.sprite.spritecollide(player, enemy_group, True, collided=pygame.sprite.collide_mask)
+        player_colision = pygame.sprite.spritecollide(player, enemy_group, False, collided=pygame.sprite.collide_mask)
         for p in player_colision: 
-            current_sanity -= 32
-            if current_sanity <= 0:
-                current_sanity = 0
-                game_state = "GAME_OVER"
 
-        #colisao do projétil 
-        bullet_hits = pygame.sprite.spritecollide(player, enemy_bullet_group, True, collided=pygame.sprite.collide_mask)
+            #Logica quando o player for atingido
+            if player.hit():
+
+                audio.play_sound("src/assets/sounds/player_hit.mp3", 0.5)
+
+                if not isinstance(p, Boss):
+                    p.kill()
+                current_sanity -= 32
+                if current_sanity <= 0:
+                    current_sanity = 0
+                    game_state = "GAME_OVER"
+
+        #colisao do projétil w
+        bullet_hits = pygame.sprite.spritecollide(player, enemy_bullet_group, False, collided=pygame.sprite.collide_mask)
         for b in bullet_hits:
-            current_sanity -= 16
-            if current_sanity <= 0:
-                current_sanity = 0
-                game_state = "GAME_OVER"
+            if player.hit():
+
+                audio.play_sound("src/assets/sounds/player_hit.mp3", 0.5)
+
+                b.kill() 
+                current_sanity -= 16
+                if current_sanity <= 0:
+                    current_sanity = 0
+                    game_state = "GAME_OVER"
 
     if game_state == "MENU": 
         main_menu.draw(screen)
@@ -290,9 +308,7 @@ while running:
 
         #Barra de vida do inimigo 
         for enemy in enemy_group:
-            if isinstance(enemy, Boss):
-                enemy.draw_health_bar(screen)  # Desenha a barra grande do Boss no topo
-            else:
+            if hasattr(enemy, "draw_health_bar"):
                 enemy.draw_health_bar(screen)
 
         # HUD (Vidas e Score)
@@ -300,11 +316,12 @@ while running:
         score_text = font.render(f"Score: {score}", True, settings.WHITE)
         wave_text = font.render(f"Wave: {current_wave} ({enemies_defeated_wave}/{enemies_required_wave})", True, settings.WHITE)
 
-        #HUD-Heath
-        Health_rect = Health_text.get_rect()
-        Health_rect.left = int(settings.WIDTH * 0.08)
-        Health_rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
-        screen.blit(Health_text, Health_rect)
+        scale_hud = 0.7
+    
+        hud_y = settings.HEIGHT - (170 * scale_hud) - 20
+        hud_x = int(settings.WIDTH * 0.02)
+        
+        hud.draw_sanity(screen, current_sanity, pos=(hud_x, hud_y), scale=scale_hud)
 
         #HUD-Score
         score_rect = score_text.get_rect() 
@@ -331,6 +348,5 @@ while running:
 
     pygame.display.flip()
     clock.tick(60)
-
 
 pygame.quit()

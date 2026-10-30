@@ -21,9 +21,16 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         self.ship_type = ship_type
         self.config = PLAYER_CONFIGS.get(self.ship_type, PLAYER_CONFIGS["IF-01 Alpha"])
-        
+
+        self.invulnerable = False 
+        self.invulnerable_timer = 0
+        self.invulnerable_duraction = 60 
+
+        self.is_flashing = False 
+        self.flash_timer = 0
+
         self.load_image_dynamic()
-        
+
         self.rect = self.image.get_rect()
         self.rect.centerx = settings.WIDTH // 2
         self.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
@@ -32,6 +39,16 @@ class Player(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
 
         self.speed = 6
+
+    def hit(self):
+        if not self.invulnerable: 
+            self.invulnerable = True 
+            self.invulnerable_timer = 0
+            self.is_flashing = True
+            self.is_flash_timer = 0
+            return True
+        return False 
+
 
     def load_image_dynamic(self):
         player_width = max(50, int(settings.WIDTH * self.config["size_scale"][0]))
@@ -70,6 +87,21 @@ class Player(pygame.sprite.Sprite):
         if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and self.rect.bottom < settings.HEIGHT:
             self.rect.y += self.speed
 
+        if self.invulnerable:
+            self.invulnerable_timer += 1
+
+
+        #efeito da nave piscar
+        self.flash_timer += 1
+        if self.flash_timer % 10 < 5:
+            self.image.set_alpha(50)  
+        else:
+            self.image.set_alpha(255)
+
+        if self.invulnerable_timer >= self.invulnerable_duraction: 
+            self.invulnerable = False
+            self.is_flashing = False 
+            self.image.set_alpha(255)
 
     def shoot(self): 
         return Bullet(self.rect.centerx, self.rect.top)
