@@ -9,8 +9,7 @@ class AudioManager:
         
         self.sounds = {}
 
-    def play_sound(self, path, volume=0.5):
-        """Função genérica: Carrega o som (se não existir) e toca-o."""
+    def play_sound(self, path, volume=0.4):
         if path not in self.sounds:
             try:
                 self.sounds[path] = pygame.mixer.Sound(path)

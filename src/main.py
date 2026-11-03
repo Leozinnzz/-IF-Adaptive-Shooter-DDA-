@@ -239,8 +239,6 @@ while running:
                             current_music_state = "BOSS"
 
                 else:
-                    # Se a wave ainda não acabou, cria um novo inimigo normal
-                    #if not getattr(map_manager, "boss_triggered", False):
                         if current_wave == 1:
                             enemy_type = random.choice(["bug", "drone_sintaxe"])
                         elif current_wave == 2:
@@ -261,8 +259,6 @@ while running:
             if p.type == 'coffee':
                 score += 100
                 current_sanity = min(100, current_sanity + 10)
-            elif p.type == 'auxilio':
-                score += 700
 
         #Colisao do jogador com o inimigo
         player_colision = pygame.sprite.spritecollide(player, enemy_group, False, collided=pygame.sprite.collide_mask)
@@ -342,7 +338,7 @@ while running:
         screen.blit(game_over_text, go_rect)
         
 
-        restart_text = font_instructions.render("Pressione Qualquer Tecla para continuar...", True, settings.WHITE)
+        restart_text = font_instructions.render("Pressione Enter para continuar...", True, settings.WHITE)
         restart_rect = restart_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + 30))
         screen.blit(restart_text, restart_rect)
 

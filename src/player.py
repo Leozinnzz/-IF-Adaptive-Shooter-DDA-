@@ -2,7 +2,6 @@ import pygame
 import settings
 from bullet import Bullet
 
-
 PLAYER_CONFIGS = {
     "IF-01 Alpha": {
         "image_path": "src/assets/img/IF-01 Alpha.png",
@@ -45,7 +44,7 @@ class Player(pygame.sprite.Sprite):
             self.invulnerable = True 
             self.invulnerable_timer = 0
             self.is_flashing = True
-            self.is_flash_timer = 0
+            self.flash_timer = 0
             return True
         return False 
 
@@ -90,18 +89,17 @@ class Player(pygame.sprite.Sprite):
         if self.invulnerable:
             self.invulnerable_timer += 1
 
+            #efeito da nave piscar
+            self.flash_timer += 1
+            if self.flash_timer % 10 < 5:
+                self.image.set_alpha(50)  
+            else:
+                self.image.set_alpha(255)
 
-        #efeito da nave piscar
-        self.flash_timer += 1
-        if self.flash_timer % 10 < 5:
-            self.image.set_alpha(50)  
-        else:
-            self.image.set_alpha(255)
-
-        if self.invulnerable_timer >= self.invulnerable_duraction: 
-            self.invulnerable = False
-            self.is_flashing = False 
-            self.image.set_alpha(255)
+            if self.invulnerable_timer >= self.invulnerable_duraction: 
+                self.invulnerable = False
+                self.is_flashing = False 
+                self.image.set_alpha(255)
 
     def shoot(self): 
         return Bullet(self.rect.centerx, self.rect.top)

@@ -6,17 +6,17 @@ BULLET_CONFIGS = {
     "red_orb": {
         "image_path": "src/assets/img/red_orb.png",
         "size": (25, 25),
-        "fallback_color": (255, 0, 0)      # Vermelho se a imagem falhar
+        "fallback_color": (255, 0, 0)      
     },
     "blue_orb": {
         "image_path": "src/assets/img/blue_orb.png",
         "size": (25, 25),
-        "fallback_color": (0, 0, 255)      # Azul se a imagem falhar
+        "fallback_color": (0, 0, 255)      
     },
     "green_orb": {
         "image_path": "src/assets/img/green_orb.png",
         "size": (25, 25),
-        "fallback_color": (0, 255, 0)      # Verde se a imagem falhar
+        "fallback_color": (0, 255, 0)     
     }
 }
 

@@ -151,10 +151,20 @@ class Enemy(pygame.sprite.Sprite):
         for other in enemy_group: 
             if other != self:
                 if self.rect.colliderect(other.rect):
+
+                    is_boss = (other.__class__.__name__ == "Boss")
+                    if is_boss:
+                        push_speed = 6
+                    else: 
+                        push_speed = 3
+
                     if self.rect.centerx < other.rect.centerx:
-                        self.rect.x -= 3
+                        self.rect.x -= push_speed
                     else:
-                        self.rect.x += 3
+                        self.rect.x += push_speed
+
+                    if is_boss and self.rect.top < other.rect.bottom:
+                        self.rect.y += 2
 
         if self.rect.top > settings.HEIGHT:
             self.reset_state()

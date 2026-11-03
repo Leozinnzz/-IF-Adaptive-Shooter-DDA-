@@ -6,7 +6,6 @@ class HUD:
         
         base_path = "src/assets/img/"
         
-        
         self.frame = pygame.image.load(f"{base_path}sanidade_frame.png").convert_alpha()
         self.fill = pygame.image.load(f"{base_path}sanidade_fill.png").convert_alpha()
         self.empty = pygame.image.load(f"{base_path}sanidade_empty.png").convert_alpha()
