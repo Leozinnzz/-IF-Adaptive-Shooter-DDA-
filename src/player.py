@@ -21,9 +21,12 @@ class Player(pygame.sprite.Sprite):
         self.ship_type = ship_type
         self.config = PLAYER_CONFIGS.get(self.ship_type, PLAYER_CONFIGS["IF-01 Alpha"])
 
+        #Ivulnerabilidade
         self.invulnerable = False 
         self.invulnerable_timer = 0
         self.invulnerable_duraction = 60 
+
+        self.shield_duration = 500
 
         self.is_flashing = False 
         self.flash_timer = 0
@@ -37,7 +40,13 @@ class Player(pygame.sprite.Sprite):
         #Hitbox pixel perfect 
         self.mask = pygame.mask.from_surface(self.image)
 
+
+        #Velocidade da nave e boost do powerup
         self.speed = 6
+        self.base_speed = self.speed
+        self.speed_boost_timer = 0
+        self.speed_boost_duration = 600 
+
 
     def hit(self):
         if not self.invulnerable: 
@@ -75,12 +84,31 @@ class Player(pygame.sprite.Sprite):
         self.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
         self.mask = pygame.mask.from_surface(self.image)
 
+    def apply_speed_boost(self, multiplier=1.5): 
+        self.speed = int(self.base_speed * multiplier)
+        self.speed_boost_timer = self.speed_boost_duration
+
+    def activate_shield(self):
+        self.invulnerable = True
+        self.invulnerable_timer = 0
+        self.is_flashing = True
+        self.flash_timer = 0
+        self.invulnerable_duraction = self.shield_duration
+
     def update(self, keys):
+        #Speed Boost logica
+        if self.speed_boost_timer > 0:
+            self.speed_boost_timer -= 1
+            if self.speed_boost_timer == 0:
+                self.speed = self.base_speed
+
+        #Movimento horizontal
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and self.rect.left > 0:
             self.rect.x -= self.speed
         if (keys[pygame.K_RIGHT] or keys[pygame.K_d]) and self.rect.right < settings.WIDTH:
             self.rect.x += self.speed
-        # Movimento Vertical (Cima / Baixo ou W / S)
+
+        # Movimento Vertical 
         if (keys[pygame.K_UP] or keys[pygame.K_w]) and self.rect.top > 0:
             self.rect.y -= self.speed
         if (keys[pygame.K_DOWN] or keys[pygame.K_s]) and self.rect.bottom < settings.HEIGHT:
@@ -88,6 +116,7 @@ class Player(pygame.sprite.Sprite):
 
         if self.invulnerable:
             self.invulnerable_timer += 1
+            self.flash_timer += 1
 
             #efeito da nave piscar
             self.flash_timer += 1
@@ -100,6 +129,7 @@ class Player(pygame.sprite.Sprite):
                 self.invulnerable = False
                 self.is_flashing = False 
                 self.image.set_alpha(255)
+                self.invulnerable_duraction = 60
 
     def shoot(self): 
         return Bullet(self.rect.centerx, self.rect.top)

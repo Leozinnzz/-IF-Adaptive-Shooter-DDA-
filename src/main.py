@@ -185,7 +185,7 @@ while running:
     if game_state == "PLAYING":
         powerup_spawn_timer += 1
         if powerup_spawn_timer > 300:
-            chosen_type = random.choice(['coffee'])
+            chosen_type = random.choice(['coffee', 'ticket', 'clock', 'shield'])
             powerup = PowerUp(chosen_type)
             all_sprites.add(powerup)
             powerup_group.add(powerup)
@@ -237,6 +237,9 @@ while running:
                             enemy_group.add(boss)
                             audio.play_music("src/assets/sounds/boss_music.mp3")
                             current_music_state = "BOSS"
+                        if map_manager.boss_triggered == False:
+                            audio.stop_music()
+                
 
                 else:
                         if current_wave == 1:
@@ -253,12 +256,13 @@ while running:
         # Colisão Power up
         powerup_collisions = pygame.sprite.spritecollide(player, powerup_group, True, collided=pygame.sprite.collide_mask)
         for p in powerup_collisions:
+            ctx = {'score': score, 'sanity': current_sanity}
+            
+            p.apply_effect(player, ctx, audio)
+            
+            score = ctx['score']
+            current_sanity = ctx['sanity']
 
-            p.play_sound()
-
-            if p.type == 'coffee':
-                score += 100
-                current_sanity = min(100, current_sanity + 10)
 
         #Colisao do jogador com o inimigo
         player_colision = pygame.sprite.spritecollide(player, enemy_group, False, collided=pygame.sprite.collide_mask)
@@ -282,7 +286,6 @@ while running:
             if player.hit():
 
                 audio.play_sound("src/assets/sounds/player_hit.mp3", 0.5)
-
                 b.kill() 
                 current_sanity -= 16
                 if current_sanity <= 0:
@@ -337,7 +340,6 @@ while running:
         go_rect = game_over_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 - 30))
         screen.blit(game_over_text, go_rect)
         
-
         restart_text = font_instructions.render("Pressione Enter para continuar...", True, settings.WHITE)
         restart_rect = restart_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + 30))
         screen.blit(restart_text, restart_rect)

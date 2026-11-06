@@ -4,17 +4,29 @@ from settings import WIDTH, HEIGHT
 
 POWERUP_CONFIGS = {
     "coffee": { 
-        "image_path": "src/assets/img/cafe.png", 
+        "image_path": "src/assets/img/powerups/cafe.png", 
         "sound_path": "src/assets/sounds/powerup.wav",
         "size": (90, 90),
         "fallback_color": (0, 255, 0) 
     },
-    #"auxilio": { 
-        #"image_path": "src/assets/img/auxilio.png", 
-        #"sound_path": "src/assets/sounds/powerup.wav",
-        #"size": (80, 80),
-        #"fallback_color": (255, 215, 0) 
-    #}
+    "ticket": { 
+        "image_path": "src/assets/img/powerups/ticket.png", 
+        "sound_path": "src/assets/sounds/powerup.wav",
+        "size": (80, 80),
+        "fallback_color": (255, 215, 0) 
+    },
+    "clock": { 
+        "image_path": "src/assets/img/powerups/clock.png", 
+        "sound_path": "src/assets/sounds/powerup.wav",
+        "size": (80, 80),
+        "fallback_color": (255, 215, 0) 
+    },
+    "shield": { 
+        "image_path": "src/assets/img/powerups/shield.png", 
+        "sound_path": "src/assets/sounds/powerup.wav",
+        "size": (80, 80),
+        "fallback_color": (255, 215, 0) 
+    },
 }
 
 class PowerUp(pygame.sprite.Sprite):
@@ -24,7 +36,6 @@ class PowerUp(pygame.sprite.Sprite):
         self.config = POWERUP_CONFIGS.get(self.type, POWERUP_CONFIGS["coffee"])
 
         self.load_image()
-        self.load_sound()
 
         self.rect = self.image.get_rect()
         self.rect.x = random.randint(50, WIDTH - 50)
@@ -47,19 +58,27 @@ class PowerUp(pygame.sprite.Sprite):
             self.image = pygame.Surface(size)
             self.image.fill(fallback_color)
 
-    def load_sound(self):
-        sound_path = self.config.get("sound_path")
-        self.sound = None
-        if sound_path:
-            try:
-                self.sound = pygame.mixer.Sound(sound_path)
-                self.sound.set_volume(0.5)
-            except (pygame.error, FileNotFoundError):
-                self.sound = None
+    def apply_effect(self, player, game_context, audio):
+        sound_path = self.config.get("soudn_path", "src/assets/sounds/powerup.wav")
+        audio.play_sound(sound_path, 0.4)
 
-    def play_sound(self):
-        if self.sound:
-            self.sound.play()
+        if self.type == 'coffee': 
+            player.apply_speed_boost(1.5) 
+            game_context['score'] += 50 
+
+        elif self.type == 'ticket': 
+            game_context['sanity'] = min(100, game_context['sanity'] + 25)
+
+        # 3. Clock -> Aula_vaga
+        elif self.type == "clock":
+            game_context['score'] += 300
+
+        # 4. Escudo DP -> invulnerabilidade temporária
+        elif self.type == "shield":
+            player.activate_shield()
+            game_context['score'] += 250
+
+
 
     def update(self):
         self.rect.y += self.speed_y

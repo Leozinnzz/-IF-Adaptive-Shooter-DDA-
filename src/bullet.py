@@ -5,7 +5,7 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         
         # Carrega a imagem única do tiro e redimensiona
-        bullet = pygame.image.load("src/assets/img/bullet_purple.png").convert_alpha()
+        bullet = pygame.image.load("src/assets/img/shoots/bullet_purple.png").convert_alpha()
         self.image = pygame.transform.scale(bullet, (40, 40))
 
         #redimensiona a imagem e centraliza ela
