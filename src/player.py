@@ -5,7 +5,7 @@ from bullet import Bullet
 PLAYER_CONFIGS = {
     "IF-01 Alpha": {
         "image_path": "src/assets/img/IF-01 Alpha.png",
-        "size_scale": (0.05, 0.18),
+        "size_scale": (0.07, 0.18),
         "fallback_color": (0, 255, 0)
     },
     "DP-02 Delta": {
@@ -27,6 +27,8 @@ class Player(pygame.sprite.Sprite):
         self.invulnerable_duraction = 60 
 
         self.shield_duration = 500
+
+        self.slowmo_timer = 0
 
         self.is_flashing = False 
         self.flash_timer = 0
@@ -56,7 +58,6 @@ class Player(pygame.sprite.Sprite):
             self.flash_timer = 0
             return True
         return False 
-
 
     def load_image_dynamic(self):
         player_width = max(50, int(settings.WIDTH * self.config["size_scale"][0]))
@@ -95,7 +96,8 @@ class Player(pygame.sprite.Sprite):
         self.flash_timer = 0
         self.invulnerable_duraction = self.shield_duration
 
-    def update(self, keys):
+    def update(self, keys, audio):
+
         #Speed Boost logica
         if self.speed_boost_timer > 0:
             self.speed_boost_timer -= 1
@@ -130,6 +132,14 @@ class Player(pygame.sprite.Sprite):
                 self.is_flashing = False 
                 self.image.set_alpha(255)
                 self.invulnerable_duraction = 60
+
+        #Clock Logic
+        if self.slowmo_timer > 0: 
+            self.slowmo_timer -= 1
+            if self.slowmo_timer <= 0: 
+                settings.TIME_SCALE = 1.0 
+                audio.stop_slowmo()
+            
 
     def shoot(self): 
         return Bullet(self.rect.centerx, self.rect.top)

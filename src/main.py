@@ -26,7 +26,7 @@ font_instructions = pygame.font.SysFont("arial", 20)
 audio = AudioManager()
 main_menu = Menu()
 settings_menu = SettingsMenu()
-map_manager = mapManager(1)
+map_manager = mapManager(1, audio=audio)
 hud = HUD()
 map_music = []
 
@@ -35,6 +35,7 @@ map_music = []
 def reset_game(): 
     global all_sprites, enemy_group, powerup_group, bullet_group, explosion_group, enemy_bullet_group, player, score, current_sanity, powerup_spawn_timer
     global current_wave, enemies_defeated_wave, enemies_required_wave
+    global current_music_state
     # Grupos de Sprites
     all_sprites = pygame.sprite.Group()
     enemy_group = pygame.sprite.Group()
@@ -47,6 +48,11 @@ def reset_game():
     all_sprites.add(player)
 
     quantity = settings.WIDTH // 200    
+
+    #Reset do mapa e da musica
+    map_manager.reset_scroll()          
+    map_manager.play_map_music(audio)   
+    current_music_state = "PLAYING"
 
     #inicializaçção das fases/inimigos
     allowed_enemies = map_manager.get_allowed_enemies()
@@ -61,7 +67,6 @@ def reset_game():
             enemy_type = random.choice(["AND_corrompido", "NOT_corrompido", "OR_corrompido"])
         else: 
             random.choice(allowed_enemies)
-            
         enemy = Enemy(enemy_type)
         all_sprites.add(enemy)
         enemy_group.add(enemy)
@@ -70,10 +75,11 @@ def reset_game():
     max_sanity = 100
     current_sanity = 100
     powerup_spawn_timer = 0
+    settings.TIME_SCALE = 1.0
 
 running = True
 game_state = "MENU" #Estados do game ["MENU" "PLAYING" "GAME_OVER"]
-current_music_state = None
+current_music_state = "MENU"
 
 reset_game()
 
@@ -87,7 +93,7 @@ while running:
     elif game_state == "PLAYING" and current_music_state not in ("PLAYING", "BOSS"):
         audio.stop_music()
         current_music_state = "PLAYING"
-        map_manager.play_map_music()
+        map_manager.play_map_music(audio)
 
     elif game_state == "GAME_OVER" and current_music_state != "GAME_OVER":
         audio.stop_music()
@@ -101,7 +107,6 @@ while running:
             running = False
 
         elif event.type == pygame.VIDEORESIZE: 
-            #atualiza a tela com o novo tamanho 
             settings.WIDTH = event.w
             settings.HEIGHT = event.h
 
@@ -137,29 +142,33 @@ while running:
                         running = False
 
             elif game_state == "SETTINGS":
-                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
+                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s, pygame.K_LEFT, pygame.K_RIGHT, pygame.K_a, pygame.K_d):
                     audio.play_menu_move()
+                settings_menu.handle_input(event, audio)
 
-                settings_menu.handle_input(event)
-
-                if event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_LEFT, pygame.K_RIGHT):
-                    escolha = settings_menu.get_selected_action()
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    escolha = settings_menu.options[settings_menu.selected_index]
+                    
                     if "Voltar" in escolha:
                         game_state = "MENU"
-                    elif "Resolução" in escolha and event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_RIGHT):
-                        w, h = settings_menu.resolutions[settings_menu.res_index]
-                        settings.WIDTH = w
-                        settings.HEIGHT = h
-                        screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
+                        
+                    elif "Tela Cheia" in escolha:
+                        if settings_menu.fullscreen:
+                            screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                            settings.WIDTH, settings.HEIGHT = screen.get_size()
+                        else:
+                            settings.WIDTH = 1280
+                            settings.HEIGHT = 720
+                            screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
 
-                        map_manager.resize()
-
-                        #posição dinamica do jogador
+                        
                         player.resize()
                         player.rect.centerx = settings.WIDTH // 2
                         player.rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
-
-                        for enemy in enemy_group: 
+                        
+                        map_manager.resize()
+                        
+                        for enemy in enemy_group:
                             enemy.resize()
                             if isinstance(enemy, Boss):
                                 enemy.resize()
@@ -192,7 +201,7 @@ while running:
             powerup_spawn_timer = 0
 
         # Atualizações 
-        player.update(keys)
+        player.update(keys, audio)
         enemy_group.update(enemy_group, enemy_bullet_group)
         powerup_group.update()
         bullet_group.update()
@@ -239,8 +248,6 @@ while running:
                             current_music_state = "BOSS"
                         if map_manager.boss_triggered == False:
                             audio.stop_music()
-                
-
                 else:
                         if current_wave == 1:
                             enemy_type = random.choice(["bug", "drone_sintaxe"])
@@ -296,7 +303,7 @@ while running:
         main_menu.draw(screen)
 
     elif game_state == "SETTINGS":
-        settings_menu.draw(screen)
+        settings_menu.draw(audio, screen)
 
     elif game_state == "PLAYING" or game_state == "GAME_OVER":
         map_manager.draw(screen)
@@ -310,8 +317,7 @@ while running:
             if hasattr(enemy, "draw_health_bar"):
                 enemy.draw_health_bar(screen)
 
-        # HUD (Vidas e Score)
-        Health_text = font.render(f"Sanidade: {current_sanity}", True, settings.WHITE)
+        # HUD (Score e waves)
         score_text = font.render(f"Score: {score}", True, settings.WHITE)
         wave_text = font.render(f"Wave: {current_wave} ({enemies_defeated_wave}/{enemies_required_wave})", True, settings.WHITE)
 
@@ -339,6 +345,7 @@ while running:
         game_over_text = font_gameover.render("GAME OVER - SANIDADE ESGOTADA", True, (255, 0, 0))
         go_rect = game_over_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 - 30))
         screen.blit(game_over_text, go_rect)
+
         
         restart_text = font_instructions.render("Pressione Enter para continuar...", True, settings.WHITE)
         restart_rect = restart_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + 30))

@@ -127,9 +127,7 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.flash_image
 
     def update(self, enemy_group, enemy_bullet_group):
-        self.rect.y += self.speed_y
-
-        
+        self.rect.y += int(self.speed_y * settings.TIME_SCALE)
 
         #Flash de imapcto
         if self.is_flashing: 
@@ -145,7 +143,6 @@ class Enemy(pygame.sprite.Sprite):
                 self.shoot_timer = 0
                 bullet = EnemyBullet(self.rect.centerx, self.rect.bottom, bullet_type=self.bullet_type)
                 enemy_bullet_group.add(bullet)
-
 
         #evitar colisao entre inimigos 
         for other in enemy_group: 

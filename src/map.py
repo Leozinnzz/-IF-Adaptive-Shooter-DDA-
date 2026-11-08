@@ -1,5 +1,6 @@
 import pygame as py 
 import settings as set 
+import settings
 
 MAP_CONFIGS = {
     1: {
@@ -18,7 +19,7 @@ MAP_CONFIGS = {
 }
 
 class mapManager:
-    def __init__(self, current_map_id = 1):
+    def __init__(self, current_map_id = 1, audio = None):
         self.current_map_id = current_map_id
         self.config = MAP_CONFIGS[current_map_id]
 
@@ -28,7 +29,10 @@ class mapManager:
         
         self.load_map_image()
         self.reset_scroll()
-        self.play_map_music() 
+        self.play_map_music(audio) 
+
+        if audio:
+            self.play_map_music(audio)
 
     def load_map_image(self):
         path = self.config.get("image_path")
@@ -50,15 +54,11 @@ class mapManager:
             self.bg_image = py.Surface((set.WIDTH, set.HEIGHT * 3))
             self.bg_image.fill(self.config.get("background_color", (30, 30, 40)))
 
-    def play_map_music(self): 
+    def play_map_music(self, audio): 
         music_path = self.config.get("music_path")
-        if music_path:
-            try:
-                py.mixer.music.load(music_path)
-                py.mixer.music.set_volume(0.8)
-                py.mixer.music.play(-1)
-            except (py.error, FileNotFoundError) as e: 
-                print(f"Erro ao carregar música {music_path}: {e}")
+        if music_path and audio:
+            audio.play_music(music_path)
+
 
     def reset_scroll(self):
         # Começa no fundo do mapa
@@ -87,7 +87,7 @@ class mapManager:
     def update(self):
         if self.scroll_speed > 0:
             if self.scroll_y < self.target_scroll_y:
-                self.scroll_y += self.scroll_speed
+                self.scroll_y += (self.scroll_speed * settings.TIME_SCALE)
                 # Garante que não passa do alvo
                 if self.scroll_y >= self.target_scroll_y:
                     self.scroll_y = self.target_scroll_y

@@ -1,5 +1,6 @@
 import pygame 
-from settings import HEIGHT
+import settings
+
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -20,7 +21,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         # Movimento vertical ativo
-        self.rect.y += self.speed_y
+        self.rect.y += int(self.speed_y* settings.TIME_SCALE)
 
         # remove o tiro se ele sair da tela 
         if self.rect.bottom < 0:

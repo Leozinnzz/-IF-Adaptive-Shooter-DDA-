@@ -1,6 +1,6 @@
 import pygame
 import random
-from settings import WIDTH, HEIGHT
+import settings
 
 POWERUP_CONFIGS = {
     "coffee": { 
@@ -38,7 +38,7 @@ class PowerUp(pygame.sprite.Sprite):
         self.load_image()
 
         self.rect = self.image.get_rect()
-        self.rect.x = random.randint(50, WIDTH - 50)
+        self.rect.x = random.randint(50, settings.WIDTH - 50)
         self.rect.y = -40
 
         #hitbox do cafe
@@ -62,25 +62,32 @@ class PowerUp(pygame.sprite.Sprite):
         sound_path = self.config.get("soudn_path", "src/assets/sounds/powerup.wav")
         audio.play_sound(sound_path, 0.4)
 
+        
+        #Coffee Bonus de velocidade
         if self.type == 'coffee': 
             player.apply_speed_boost(1.5) 
-            game_context['score'] += 50 
+            game_context['score'] += 20 
 
+        # Ticket Vida/energia ao player
         elif self.type == 'ticket': 
             game_context['sanity'] = min(100, game_context['sanity'] + 25)
 
         # 3. Clock -> Aula_vaga
-        elif self.type == "clock":
-            game_context['score'] += 300
+        elif self.type == 'clock':
+            settings.TIME_SCALE = 0.5 
+
+            if player.slowmo_timer <= 0:
+                audio.start_slowmo()
+
+            player.slowmo_timer = 480
+            game_context['score'] += 25
 
         # 4. Escudo DP -> invulnerabilidade temporária
-        elif self.type == "shield":
+        elif self.type == 'shield':
             player.activate_shield()
-            game_context['score'] += 250
-
-
+            game_context['score'] += 10
 
     def update(self):
         self.rect.y += self.speed_y
-        if self.rect.top > HEIGHT:
+        if self.rect.top > settings.HEIGHT:
             self.kill()

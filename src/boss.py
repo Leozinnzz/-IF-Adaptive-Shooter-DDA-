@@ -1,5 +1,6 @@
 import pygame as py 
 import settings 
+import random
 from enemy_bullet import EnemyBullet
 
 BOSS_CONFIGS = {
@@ -90,7 +91,7 @@ class Boss(py.sprite.Sprite):
                 self.state = "FIGHT"
                 
         elif self.state == "FIGHT":
-            self.rect.x += self.speed_x
+            self.rect.x += int(self.speed_x * settings.TIME_SCALE)
             if self.rect.left <= 20 or self.rect.right >= settings.WIDTH - 20:
                 self.speed_x *= -1
 
@@ -101,8 +102,22 @@ class Boss(py.sprite.Sprite):
                 self.shoot_pattern(enemy_bullet_group)
 
     def shoot_pattern(self, enemy_bullet_group):
-        bullet = EnemyBullet(self.rect.centerx, self.rect.bottom)
-        enemy_bullet_group.add(bullet)
+        attack_type = random.choice(["canhao_duplo", "tiro_triplo", "centro_simples"])
+
+        if attack_type == "centro_simples":
+            bullet = EnemyBullet(self.rect.centerx, self.rect.bottom)
+            enemy_bullet_group.add(bullet)
+
+        elif attack_type == "canhao_duplo":
+            bullet_left = EnemyBullet(self.rect.left + 20, self.rect.bottom)
+            bullet_right = EnemyBullet(self.rect.right - 20, self.rect.bottom)
+            enemy_bullet_group.add(bullet_left, bullet_right)
+
+        elif attack_type == "tiro_triplo":
+            b_center = EnemyBullet(self.rect.centerx, self.rect.bottom)
+            b_left = EnemyBullet(self.rect.centerx - 40, self.rect.bottom)
+            b_right = EnemyBullet(self.rect.centerx + 40, self.rect.bottom)
+            enemy_bullet_group.add(b_center, b_left, b_right)
 
     def draw_health_bar(self, surface):
         bar_width = int(settings.WIDTH * 0.6)

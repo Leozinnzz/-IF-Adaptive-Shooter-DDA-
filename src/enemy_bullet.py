@@ -1,5 +1,5 @@
 import pygame 
-from settings import WIDTH, HEIGHT
+import settings
 
 
 BULLET_CONFIGS = {
@@ -48,8 +48,8 @@ class EnemyBullet(pygame.sprite.Sprite):
 
         
     def update(self):
-        self.rect.y += self.speed_y
+        self.rect.y += int(self.speed_y * settings.TIME_SCALE)
 
 
-        if self.rect.top > HEIGHT:
+        if self.rect.top > settings.HEIGHT:
             self.kill()
