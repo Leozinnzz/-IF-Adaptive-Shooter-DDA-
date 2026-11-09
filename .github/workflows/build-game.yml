@@ -1,0 +1,48 @@
+name: Compilar jogo
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            runner: ubuntu-22.04
+            archive: tar.gz
+          - platform: windows
+            runner: windows-latest
+            archive: zip
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          architecture: x64
+
+      - name: Instalar dependências da build
+        run: python -m pip install pygame-ce==2.5.8 pyinstaller==6.22.3
+
+      - name: Empacotar executável e assets
+        run: python -m PyInstaller --name IFAdaptiveShooter --add-data "src/assets:src/assets" src/main.py
+
+      - name: Compactar versão Linux
+        if: runner.os == 'Linux'
+        run: tar -czf IFAdaptiveShooter-linux-x64.tar.gz -C dist IFAdaptiveShooter
+
+      - name: Compactar versão Windows
+        if: runner.os == 'Windows'
+        run: Compress-Archive -Path dist/IFAdaptiveShooter -DestinationPath IFAdaptiveShooter-windows-x64.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IFAdaptiveShooter-${{ matrix.platform }}-x64
+          path: IFAdaptiveShooter-${{ matrix.platform }}-x64.${{ matrix.archive }}
+          if-no-files-found: error

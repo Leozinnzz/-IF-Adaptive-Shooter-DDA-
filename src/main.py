@@ -1,3 +1,7 @@
+import os
+import sys
+from pathlib import Path
+
 import pygame
 import random
 import settings 
@@ -12,6 +16,11 @@ from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
 from boss import Boss
 from hud import HUD
+
+if getattr(sys, "frozen", False):
+    # Keep the game's relative asset paths anchored in the bundle.
+    os.chdir(Path(__file__).resolve().parent)
+
 
 pygame.init()
 pygame.mixer.init()
@@ -29,7 +38,6 @@ settings_menu = SettingsMenu()
 map_manager = mapManager(1, audio=audio)
 hud = HUD()
 map_music = []
-
 
 #Reiniciar todas as variáveis do jogo       
 def reset_game(): 
