@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-
 import pygame
 import random
 import settings 
@@ -139,12 +138,14 @@ while running:
                 # confirma a opção com enter
                 if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                         escolha = main_menu.get_selected_action()
-                        if escolha == "Iniciar Jogo":
+                        if escolha == "JOGAR":
                             reset_game()
                             game_state = "PLAYING"
-                        elif escolha == "Opções":
-                            game_state = "SETTINGS"  
-                        elif escolha == "Sair":
+
+                        elif escolha == "OPÇÕES":
+                            game_state = "SETTINGS"
+
+                        elif escolha == "SAIR":
                             running = False
                 elif event.key == pygame.K_ESCAPE:
                         running = False
@@ -157,7 +158,7 @@ while running:
                 if event.key in (pygame.K_RETURN, pygame.K_SPACE):
                     escolha = settings_menu.options[settings_menu.selected_index]
                     
-                    if "Voltar" in escolha:
+                    if "VOLTAR" in escolha:
                         game_state = "MENU"
                         
                     elif "Tela Cheia" in escolha:
