@@ -1,4 +1,7 @@
 import pygame
+import os
+import sys
+from pathlib import Path
 import random
 import settings 
 from player import Player
@@ -12,6 +15,10 @@ from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
 from boss import Boss
 from hud import HUD
+
+#Compilação do jogo
+if getattr(sys, "frozen", False):
+    os.chdir(Path(__file__).resolve().parent)
 
 pygame.init()
 pygame.mixer.init()
