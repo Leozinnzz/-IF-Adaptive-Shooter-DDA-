@@ -54,7 +54,7 @@ class Menu:
         spacing = 80
         
         center_x = settings.WIDTH // 3.5  
-        start_y = settings.HEIGHT // 2.2  
+        start_y = settings.HEIGHT // 2.2   
         
         for i, option in enumerate(self.options):
             center_y = start_y + (i * spacing)

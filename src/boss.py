@@ -5,13 +5,13 @@ from enemy_bullet import EnemyBullet
 
 BOSS_CONFIGS = {
     "ITERATOR-01": {
-        "image_path": "src/assets/img/ITERATOR-01.png",
-        "size_scale": (0.15, 0.15), 
+        "image_path": "src/assets/img/Boss/ITERATOR-01.png",
+        "size_scale": (0.15, 0.25), 
         "max_health": 1000,
         "fallback_color": (255, 0, 255), 
     }, 
     "SEGMENTATION": {
-        "image_path": "src/assets/img/SEGMENTATION.png",
+        "image_path": "src/assets/img/Boss/SEGMENTATION.png",
         "size_scale": (0.15, 0.15), 
         "max_health": 1000,
         "fallback_color": (255, 0, 255), 

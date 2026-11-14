@@ -6,7 +6,7 @@ class Bullet(pygame.sprite.Sprite):
         super().__init__()
         
         # Carrega a imagem única do tiro e redimensiona
-        bullet = pygame.image.load("src/assets/img/shoots/bullet_purple.png").convert_alpha()
+        bullet = pygame.image.load("src/assets/img/shoots/bullet_green.png").convert_alpha()
         self.image = pygame.transform.scale(bullet, (40, 40))
 
         #redimensiona a imagem e centraliza ela
@@ -21,7 +21,7 @@ class Bullet(pygame.sprite.Sprite):
 
     def update(self):
         # Movimento vertical ativo
-        self.rect.y += int(self.speed_y* settings.TIME_SCALE)
+        self.rect.y += self.speed_y
 
         # remove o tiro se ele sair da tela 
         if self.rect.bottom < 0:

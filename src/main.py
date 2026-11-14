@@ -1,6 +1,3 @@
-import os
-import sys
-from pathlib import Path
 import pygame
 import random
 import settings 
@@ -16,11 +13,6 @@ from settings_menu import SettingsMenu
 from boss import Boss
 from hud import HUD
 
-if getattr(sys, "frozen", False):
-    # Keep the game's relative asset paths anchored in the bundle.
-    os.chdir(Path(__file__).resolve().parent)
-
-
 pygame.init()
 pygame.mixer.init()
 screen = pygame.display.set_mode((settings.WIDTH, settings.HEIGHT), pygame.RESIZABLE)
@@ -33,7 +25,7 @@ font_instructions = pygame.font.SysFont("arial", 20)
 
 audio = AudioManager()
 main_menu = Menu()
-settings_menu = SettingsMenu()
+settings_menu = SettingsMenu(main_menu.background_frames)
 map_manager = mapManager(1, audio=audio)
 hud = HUD()
 map_music = []

@@ -48,24 +48,24 @@ class Enemy(pygame.sprite.Sprite):
         self.shoot_interval = 0
 
         if enemy_type == "bug":
-            self.speed_y = random.randint(3,5)
+            self.speed_y = random.randint(4,6)
             self.max_health = 100
             self.can_shoot = False 
         elif enemy_type == "drone_sintaxe":
-            self.speed_y = random.randint(2,4)
+            self.speed_y = random.randint(3,5)
             self.max_health = 150
             self.can_shoot = True
             self.shoot_interval = 120
             self.shoot_timer = random.randint(0, 60)
         elif enemy_type == "OR_corrompido":
-            self.speed_y = random.randint(2,2)
+            self.speed_y = random.randint(3,3)
             self.max_health = 400
             self.can_shoot = True
             self.shoot_interval = 120
             self.shoot_timer = random.randint(0, 30)
         else:
             self.max_health = 200
-            self.speed_y = random.randint(1,3)
+            self.speed_y = random.randint(2,4)
             self.can_shoot = True
             self.shoot_interval = 90 
             self.shoot_timer = random.randint(0, 30)

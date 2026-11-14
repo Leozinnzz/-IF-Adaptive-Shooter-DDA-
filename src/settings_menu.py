@@ -3,7 +3,7 @@ import settings
 from PIL import Image, ImageSequence
 
 class SettingsMenu:
-    def __init__(self):
+    def __init__(self, back_frames = None):
         self.options = ["Música: 100%", "Efeitos: 100%", "Áudio: Ativado", "Tela Cheia: Desativado", "VOLTAR"]
         self.selected_index = 0
 
@@ -13,10 +13,14 @@ class SettingsMenu:
         self.font = pygame.font.SysFont("arial", 28, bold=True)
         self.font_title = pygame.font.SysFont("arial", 50, bold=True)
 
-        gif_path = 'src/assets/img/menu/menu.gif'
-        self.background_frames = self.load_gif_direct(gif_path)
         self.current_frame = 0.0
         self.animation_speed = 0.3 
+
+        if back_frames:
+            self.background_frames = back_frames
+        else:
+            gif_path = 'src/assets/img/menu/menu_if_fundo_animado.gif'
+            self.background_frames = self.load_gif_direct(gif_path)
 
     def load_gif_direct(self, path):
         frames = []
