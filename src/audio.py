@@ -37,9 +37,11 @@ class AudioManager:
     def set_mute(self, is_muted):
         self.muted = is_muted
         if self.muted:
-            pygame.mixer.music.set_volume(0)  
+            self.set_music_volume(0)
+            self.set_sfx_volume(0)
         else:
-            pygame.mixer.music.set_volume(self.music_volume)
+            self.set_music_volume(0.8)
+            self.set_sfx_volume(0.8)
 
     def play_music(self, filepath, loop=-1):
         try:

@@ -42,7 +42,6 @@ class Player(pygame.sprite.Sprite):
         #Hitbox pixel perfect 
         self.mask = pygame.mask.from_surface(self.image)
 
-
         #Velocidade da nave e boost do powerup
         self.speed = 6
         self.base_speed = self.speed

@@ -4,10 +4,8 @@ from PIL import Image, ImageSequence
 
 class Menu:
     def __init__(self):
-        # Aumentei um pouco a fonte para ficar proporcional aos botões da imagem
         self.font_options = pygame.font.SysFont("arial", 32, bold=True)
         
-        # Opções atualizadas para bater exatamente com a tua imagem
         self.options = ["JOGAR", "OPÇÕES", "SAIR"]
         self.selected_index = 0
 
@@ -41,7 +39,6 @@ class Menu:
         return self.options[self.selected_index]
 
     def draw(self, screen):
-        # --- Draw Animated Background ---
         self.current_frame += self.animation_speed
         if self.current_frame >= len(self.background_frames):
             self.current_frame = 0.0
