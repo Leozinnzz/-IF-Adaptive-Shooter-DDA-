@@ -5,16 +5,24 @@ from enemy_bullet import EnemyBullet
 
 BOSS_CONFIGS = {
     "ITERATOR-01": {
-        "image_path": "src/assets/img/Boss/ITERATOR-01.png",
+        "image_path": "src/assets/img/Boss/ITERATOR-011.png",
         "size_scale": (0.15, 0.25), 
         "max_health": 1000,
         "fallback_color": (255, 0, 255), 
+        "cols": 6, 
+        "rows": 4, 
+        "anim_speed": 0.75, 
+        "colorkey": (0,0,0)
     }, 
     "SEGMENTATION": {
         "image_path": "src/assets/img/Boss/SEGMENTATION.png",
         "size_scale": (0.15, 0.15), 
         "max_health": 1000,
         "fallback_color": (255, 0, 255), 
+        "cols": 6, 
+        "rows": 4, 
+        "anim_speed": 0.25, 
+        "colorkey": (0,0,0)
     },
 }
 
@@ -23,6 +31,10 @@ class Boss(py.sprite.Sprite):
         super().__init__()
         self.boss_type = boss_type 
         self.config = BOSS_CONFIGS.get(self.boss_type, BOSS_CONFIGS["ITERATOR-01"]) 
+
+        self.frames = []
+        self.current_frame = 0.0 
+        self.anim_speed = self.config.get("anim_speed", 0.0)
 
         self.load_image_dynamic()
 
@@ -52,15 +64,34 @@ class Boss(py.sprite.Sprite):
         
         path = self.config.get("image_path")
         fallback_color = self.config.get("fallback_color", settings.RED)
+        cols = self.config.get("cols", 1)
+        rows = self.config.get("rows", 1)
+        colorkey = self.config.get("colorkey")
 
-        try: 
-            self.original_image = py.image.load(path).convert_alpha()
-            self.original_image = py.transform.scale(self.original_image, (boss_width, boss_height))
+        self.frames = []
+
+        try:
+            sheet = py.image.load(path).convert_alpha()
+            frame_w = sheet.get_width() // cols
+            frame_h = sheet.get_height() // rows
+
+            for row in range(rows):
+                for col in range(cols):
+                    rect = (col * frame_w, row * frame_h, frame_w, frame_h)
+                    frame = sheet.subsurface(rect).copy()
+                    if colorkey is not None:
+                        frame.set_colorkey(colorkey)
+                    frame = py.transform.scale(frame, (boss_width, boss_height))
+                    self.frames.append(frame)
+
+            self.original_image = self.frames[int(self.current_frame) % len(self.frames)]
             self.image = self.original_image
         except (py.error, FileNotFoundError):
-            self.original_image = py.Surface((boss_width, boss_height))
-            self.original_image.fill(fallback_color)
-            self.image = self.original_image
+            surface = py.Surface((boss_width, boss_height))
+            surface.fill(fallback_color)
+            self.frames = [surface]
+            self.original_image = surface
+            self.image = surface
 
     def resize(self):
         centerx = self.rect.centerx
@@ -79,11 +110,24 @@ class Boss(py.sprite.Sprite):
             self.image = self.flash_image
 
     def update(self, enemy_group, enemy_bullet_group):
+        if len(self.frames) > 1:
+            self.current_frame = (self.current_frame + self.anim_speed * settings.TIME_SCALE) % len(self.frames)
+            self.original_image = self.frames[int(self.current_frame)]
+
         if self.is_flashing: 
             self.flash_timer += 1
             if self.flash_timer > self.flash_duration:
                 self.is_flashing = False
                 self.image = self.original_image
+            else:
+                flash_img = self.original_image.copy()
+                flash_img.fill((100, 100, 100), special_flags=py.BLEND_RGBA_MULT)
+                self.image = flash_img
+        else:
+            self.image = self.original_image
+
+        if len(self.frames) > 1:
+            self.mask = py.mask.from_surface(self.image)
 
         if self.state == "ENTRANCE":
             self.rect.y += 2
@@ -95,7 +139,6 @@ class Boss(py.sprite.Sprite):
             if self.rect.left <= 20 or self.rect.right >= settings.WIDTH - 20:
                 self.speed_x *= -1
 
-            # Lógica de disparo do Boss
             self.shoot_timer += 1
             if self.shoot_timer >= self.shoot_interval:
                 self.shoot_timer = 0

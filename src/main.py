@@ -1,5 +1,5 @@
 import pygame
-import os
+import os 
 import sys
 from pathlib import Path
 import random
@@ -7,12 +7,13 @@ import settings
 from player import Player
 from enemy import Enemy
 from powerup import PowerUp
-from explosion import Explosion    
+from explosion import Explosion     
 from menu import Menu 
 from audio import AudioManager
 from map import mapManager 
 from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
+from game_over_menu import GameOverMenu
 from boss import Boss
 from hud import HUD
 
@@ -35,6 +36,7 @@ main_menu = Menu()
 settings_menu = SettingsMenu(main_menu.background_frames)
 map_manager = mapManager(1, audio=audio)
 hud = HUD()
+game_over_menu = GameOverMenu()
 map_music = []
 
 #Reiniciar todas as variáveis do jogo       
@@ -182,9 +184,6 @@ while running:
                                 enemy.resize()
                             enemy.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
 
-                elif event.key == pygame.K_ESCAPE:
-                    game_state = "MENU"
-
             elif game_state == "PLAYING":
                 if event.key == pygame.K_SPACE:
                     bullet = player.shoot()
@@ -193,8 +192,21 @@ while running:
                     audio.play_sound("src/assets/sounds/laser.mp3", 0.3)
                     
             elif game_state == "GAME_OVER":
-                if event.key == pygame.K_RETURN:
-                    game_state = "MENU"  
+                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
+                    audio.play_menu_move()
+
+                game_over_menu.handle_input(event)
+
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    escolha = game_over_menu.get_selected_action()
+                    if escolha == "TENTAR NOVAMENTE":
+                        reset_game()
+                        game_state = "PLAYING"
+                    elif escolha == "VOLTAR AO MENU":
+                        game_over_menu.selected_index = 0
+                        game_state = "MENU"
+                    elif escolha == "SAIR DO JOGO":
+                        running = False
 
     keys = pygame.key.get_pressed()
 
@@ -313,7 +325,7 @@ while running:
     elif game_state == "SETTINGS":
         settings_menu.draw(audio, screen)
 
-    elif game_state == "PLAYING" or game_state == "GAME_OVER":
+    elif game_state == "PLAYING":
         map_manager.draw(screen)
         current_bg_color = map_manager.config.get("background_color", settings.BLACK)
         
@@ -349,15 +361,8 @@ while running:
         screen.blit(wave_text, wave_rect)
 
     #GAMEOVER
-    if game_state == "GAME_OVER":
-        game_over_text = font_gameover.render("GAME OVER - SANIDADE ESGOTADA", True, (255, 0, 0))
-        go_rect = game_over_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 - 30))
-        screen.blit(game_over_text, go_rect)
-
-        
-        restart_text = font_instructions.render("Pressione Enter para continuar...", True, settings.WHITE)
-        restart_rect = restart_text.get_rect(center=(settings.WIDTH // 2, settings.HEIGHT // 2 + 30))
-        screen.blit(restart_text, restart_rect)
+    elif game_state == "GAME_OVER":
+        game_over_menu.draw(screen, score, current_wave)
 
     pygame.display.flip()
     clock.tick(60)

@@ -5,17 +5,17 @@ import settings
 BULLET_CONFIGS = {
     "red_orb": {
         "image_path": "src/assets/img/orbs/red_orb.png",
-        "size": (25, 25),
+        "size": (35, 35),
         "fallback_color": (255, 0, 0)      
     },
     "blue_orb": {
         "image_path": "src/assets/img/orbs/blue_orb.png",
-        "size": (25, 25),
+        "size": (35, 35),
         "fallback_color": (0, 0, 255)      
     },
     "green_orb": {
         "image_path": "src/assets/img/orbs/green_orb.png",
-        "size": (25, 25),
+        "size": (35, 35),
         "fallback_color": (0, 255, 0)     
     }
 }
