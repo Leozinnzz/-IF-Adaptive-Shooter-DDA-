@@ -39,14 +39,14 @@ class GameOverMenu:
         screen.blit(self.bg_image, (0, 0))
 
         stats_text = self.font_score.render(f"SCORE: {score}  |  WAVE: {wave}", True, (75, 245, 150))
-        stats_rect = stats_text.get_rect(center=(settings.WIDTH // 2, int(settings.HEIGHT * 0.45)))
+        stats_rect = stats_text.get_rect(center=(settings.WIDTH // 2, int(settings.HEIGHT * 0.33)))
         screen.blit(stats_text, stats_rect)
 
         button_width = int(settings.WIDTH * 0.34)
         button_height = int(settings.HEIGHT * 0.068)
         spacing = int(settings.HEIGHT * 0.085)
         center_x = settings.WIDTH // 2
-        start_y = int(settings.HEIGHT * 0.53)
+        start_y = int(settings.HEIGHT * 0.64)
 
         for i, option in enumerate(self.options):
             center_y = start_y + (i * spacing)
