@@ -16,6 +16,7 @@ class Menu:
         self.current_frame = 0.0
         self.animation_speed = 0.3 
 
+    #Funcao para carregar o gif
     def load_gif_direct(self, path):
         frames = []
         pil_image = Image.open(path)

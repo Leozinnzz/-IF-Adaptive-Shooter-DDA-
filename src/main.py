@@ -14,6 +14,7 @@ from map import mapManager
 from enemy_bullet import EnemyBullet
 from settings_menu import SettingsMenu
 from game_over_menu import GameOverMenu
+from pause_menu import PauseMenu
 from boss import Boss
 from hud import HUD
 
@@ -31,12 +32,17 @@ font = pygame.font.SysFont("arial", 22)
 font_gameover = pygame.font.SysFont("arial", 50, bold=True)
 font_instructions = pygame.font.SysFont("arial", 20)
 
+#Controle de cadencia de tiro
+last_shot_time = 0
+shoot_cooldown = 120
+
 audio = AudioManager()
 main_menu = Menu()
 settings_menu = SettingsMenu(main_menu.background_frames)
 map_manager = mapManager(1, audio=audio)
 hud = HUD()
 game_over_menu = GameOverMenu()
+pause_menu = PauseMenu()
 map_music = []
 
 #Reiniciar todas as variáveis do jogo       
@@ -66,7 +72,7 @@ def reset_game():
     allowed_enemies = map_manager.get_allowed_enemies()
     current_wave = 1; 
     enemies_defeated_wave = 0 
-    enemies_required_wave = 2 # Um padrão inicial
+    enemies_required_wave = 10 # Um padrão inicial
 
     for _ in range(quantity):
         if current_wave == 1:
@@ -95,7 +101,7 @@ while running:
 
     #Musica de menu no jogo
     if game_state == "MENU" and current_music_state != "MENU":
-        audio.play_music("src/assets/sounds/menu_music.mp3")
+        audio.play_music("src/assets/sounds/Menu.mp3")
         current_music_state = "MENU"
         
     elif game_state == "PLAYING" and current_music_state not in ("PLAYING", "BOSS"):
@@ -105,6 +111,7 @@ while running:
 
     elif game_state == "GAME_OVER" and current_music_state != "GAME_OVER":
         audio.stop_music()
+        audio.play_music("src/assets/sounds/game_over.mp3")
         current_music_state = "GAME_OVER"
         map_manager.reset_scroll()
         
@@ -132,6 +139,7 @@ while running:
 
                 if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
                     audio.play_menu_move()
+                    
 
                 # passa o evento para tratar as setas digitadas pelo jogador
                 main_menu.handle_input(event)
@@ -185,11 +193,9 @@ while running:
                             enemy.rect.clamp_ip(pygame.Rect(0, 0, settings.WIDTH, settings.HEIGHT))
 
             elif game_state == "PLAYING":
-                if event.key == pygame.K_SPACE:
-                    bullet = player.shoot()
-                    all_sprites.add(bullet)
-                    bullet_group.add(bullet)
-                    audio.play_sound("src/assets/sounds/laser.mp3", 0.3)
+                if event.key in (pygame.K_ESCAPE, pygame.K_p):
+                    pause_menu.selected_index = 0
+                    game_state = "PAUSED"
                     
             elif game_state == "GAME_OVER":
                 if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
@@ -208,6 +214,26 @@ while running:
                     elif escolha == "SAIR DO JOGO":
                         running = False
 
+            elif game_state == "PAUSED":
+                if event.key in (pygame.K_UP, pygame.K_w, pygame.K_DOWN, pygame.K_s):
+                    audio.play_menu_move()
+
+                pause_menu.handle_input(event)
+
+                if event.key in (pygame.K_ESCAPE, pygame.K_p):
+                    game_state = "PLAYING"
+
+                elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    escolha = pause_menu.get_selected_action()
+                    if escolha == "CONTINUAR":
+                        game_state = "PLAYING"
+                    elif escolha == "REINICIAR":
+                        reset_game()
+                        game_state = "PLAYING"
+                    elif escolha == "MENU PRINCIPAL":
+                        pause_menu.selected_index = 0
+                        game_state = "MENU"    
+
     keys = pygame.key.get_pressed()
 
     # Spawn de power Up
@@ -222,6 +248,15 @@ while running:
 
         # Atualizações 
         player.update(keys, audio)
+        if keys[pygame.K_SPACE]:
+            now = pygame.time.get_ticks()
+            if now - last_shot_time >= shoot_cooldown:
+                last_shot_time = now
+                bullet = player.shoot()
+                all_sprites.add(bullet)
+                bullet_group.add(bullet)
+                audio.play_sound("src/assets/sounds/laser.mp3", 0.3)
+
         enemy_group.update(enemy_group, enemy_bullet_group)
         powerup_group.update()
         bullet_group.update()
@@ -250,7 +285,7 @@ while running:
                 if enemies_defeated_wave >= enemies_required_wave:
                     current_wave += 1  
                     enemies_defeated_wave = 0
-                    enemies_required_wave += 3
+                    enemies_required_wave += 8
 
                     if current_wave == 2:
                         map_manager.trigger_scroll_transition(current_wave) 
@@ -325,7 +360,7 @@ while running:
     elif game_state == "SETTINGS":
         settings_menu.draw(audio, screen)
 
-    elif game_state == "PLAYING":
+    elif game_state in ("PLAYING", "PAUSED"):
         map_manager.draw(screen)
         current_bg_color = map_manager.config.get("background_color", settings.BLACK)
         
@@ -359,6 +394,9 @@ while running:
         wave_rect.centerx = settings.WIDTH // 2
         wave_rect.bottom = settings.HEIGHT - int(settings.HEIGHT * 0.05)
         screen.blit(wave_text, wave_rect)
+
+        if game_state == "PAUSED":
+            pause_menu.draw(screen)
 
     #GAMEOVER
     elif game_state == "GAME_OVER":

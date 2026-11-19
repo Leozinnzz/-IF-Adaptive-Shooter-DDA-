@@ -7,11 +7,11 @@ BOSS_CONFIGS = {
     "ITERATOR-01": {
         "image_path": "src/assets/img/Boss/ITERATOR-011.png",
         "size_scale": (0.15, 0.25), 
-        "max_health": 1000,
+        "max_health": 3000,
         "fallback_color": (255, 0, 255), 
         "cols": 6, 
         "rows": 4, 
-        "anim_speed": 0.75, 
+        "anim_speed": 0.75,
         "colorkey": (0,0,0)
     }, 
     "SEGMENTATION": {
